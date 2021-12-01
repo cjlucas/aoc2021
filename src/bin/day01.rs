@@ -1,8 +1,8 @@
 use aoc2021::prelude::*;
 
 fn count_incrementing_windows(window_size: usize) -> usize {
-    let lines = read_lines_as::<i64>("inputs/day01.txt");
-    let mut windows = lines.windows(window_size);
+    let measurements = read_lines_as::<i64>("inputs/day01.txt");
+    let mut windows = measurements.windows(window_size);
 
     let mut prev_sum: i64 = windows.next().unwrap().iter().sum();
     let mut incr_cnt = 0;
