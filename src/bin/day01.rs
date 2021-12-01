@@ -1,49 +1,62 @@
 use aoc2021::prelude::*;
 
-fn count_incrementing_windows(window_size: usize) -> usize {
-    let measurements = read_lines_as::<i64>("inputs/day01.txt");
-    let mut windows = measurements.windows(window_size);
+const INPUT: &'static str = include_str!("../../inputs/day01.txt");
 
-    let mut prev_sum: i64 = windows.next().unwrap().iter().sum();
-    let mut incr_cnt = 0;
+fn count_incrementing_windows(input: &str, window_size: usize) -> usize {
+    let measurements = parse_lines::<i64>(input);
 
-    for window in windows {
-        let window_sum = window.iter().sum();
-
-        if window_sum > prev_sum {
-            incr_cnt += 1;
-        }
-
-        prev_sum = window_sum;
-    }
-
-    incr_cnt
+    measurements
+        .windows(window_size + 1)
+        .filter(|window| window.last().unwrap() > window.first().unwrap())
+        .count()
 }
 
-fn part1() -> usize {
-    count_incrementing_windows(1)
+fn part1(input: &str) -> usize {
+    count_incrementing_windows(input, 1)
 }
 
-fn part2() -> usize {
-    count_incrementing_windows(3)
+fn part2(input: &str) -> usize {
+    count_incrementing_windows(input, 3)
 }
 
 fn main() {
-    dbg!(part1());
-    dbg!(part2());
+    dbg!(part1(INPUT));
+    dbg!(part2(INPUT));
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    const SAMPLE_INPUT: &'static str = "199
+200
+208
+210
+200
+207
+240
+269
+260
+263
+";
+
+    #[test]
+    fn test_part1_sample() {
+        assert_eq!(part1(SAMPLE_INPUT), 7);
+    }
+
     #[test]
     fn test_part1() {
-        assert_eq!(1602, part1());
+        assert_eq!(part1(INPUT), 1602);
+    }
+
+    #[test]
+    fn test_part2_sample() {
+        assert_eq!(part2(SAMPLE_INPUT), 5);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(1633, part2());
+        assert_eq!(part2(INPUT), 1633);
     }
 }
