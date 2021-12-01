@@ -9,9 +9,8 @@ pub mod prelude {
         std::fs::read_to_string(fpath)
             .unwrap()
             .lines()
-            .map(str::to_string)
-            .collect::<Vec<String>>()
-            .into_iter()
             .map(|s| s.parse().unwrap())
+            .collect::<Vec<T>>()
+            .into_iter()
     }
 }
