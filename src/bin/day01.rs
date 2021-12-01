@@ -24,3 +24,18 @@ fn main() {
     println!("part1 = {}", count_incrementing_windows(1));
     println!("part2 = {}", count_incrementing_windows(3));
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(1602, count_incrementing_windows(1))
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(1633, count_incrementing_windows(3))
+    }
+}
