@@ -2,7 +2,7 @@ pub mod prelude {
     use std::fmt::Debug;
     use std::str::FromStr;
 
-    pub fn read_lines_as<T: FromStr>(fpath: &str) -> impl Iterator<Item = T>
+    pub fn read_lines_as<T: FromStr>(fpath: &str) -> Vec<T>
     where
         <T as FromStr>::Err: Debug,
     {
@@ -11,6 +11,5 @@ pub mod prelude {
             .lines()
             .map(|s| s.parse().unwrap())
             .collect::<Vec<T>>()
-            .into_iter()
     }
 }
