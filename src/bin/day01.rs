@@ -20,9 +20,17 @@ fn count_incrementing_windows(window_size: usize) -> usize {
     incr_cnt
 }
 
+fn part1() -> usize {
+    count_incrementing_windows(1)
+}
+
+fn part2() -> usize {
+    count_incrementing_windows(3)
+}
+
 fn main() {
-    println!("part1 = {}", count_incrementing_windows(1));
-    println!("part2 = {}", count_incrementing_windows(3));
+    dbg!(part1());
+    dbg!(part2());
 }
 
 #[cfg(test)]
@@ -31,11 +39,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(1602, count_incrementing_windows(1))
+        assert_eq!(1602, part1());
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(1633, count_incrementing_windows(3))
+        assert_eq!(1633, part2());
     }
 }
