@@ -3,7 +3,7 @@ use aoc2021::prelude::*;
 const INPUT: &'static str = include_str!("../../inputs/day01.txt");
 
 fn count_incrementing_windows(input: &str, window_size: usize) -> usize {
-    let measurements = parse_lines_as::<i64>(input);
+    let measurements = parse_lines::<i64>(input);
 
     measurements
         .windows(window_size + 1)
