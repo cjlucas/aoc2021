@@ -1,5 +1,3 @@
-use aoc2021::prelude::*;
-
 const INPUT: &'static str = include_str!("../../inputs/day04.txt");
 
 const BINGO_BOARD_SIZE: usize = 5;
@@ -15,16 +13,18 @@ impl BingoGame {
         self.numbers.remove(0)
     }
 
-    fn mark_boards(&mut self, number: usize) -> Option<&BingoBoard> {
-        for board in &mut self.boards {
+    fn mark_boards(&mut self, number: usize) -> Option<BingoBoard> {
+        for (idx, board) in self.boards.iter_mut().enumerate() {
             board.mark_number(number);
-
-            if board.has_bingo() {
-                return Some(board);
-            }
         }
 
-        None
+        let mut board = None;
+
+        while let Some(idx) = self.boards.iter().position(|board| board.has_bingo()) {
+            board = Some(self.boards.swap_remove(idx));
+        }
+
+        board
     }
 }
 
@@ -121,8 +121,6 @@ fn part1(input: &str) -> usize {
         if let Some(board) = game.mark_boards(n) {
             println!("GOT A WINNER");
 
-            // dbg!(board);
-
             let unmarked_sum: usize = board
                 .numbers
                 .iter()
@@ -135,12 +133,32 @@ fn part1(input: &str) -> usize {
 }
 
 fn part2(input: &str) -> usize {
-    todo!()
+    let mut game = input.parse::<BingoGame>().unwrap();
+
+    let mut answer = 0;
+    while !game.numbers.is_empty() {
+        let n = game.draw();
+
+        if let Some(board) = game.mark_boards(n) {
+            let unmarked_sum: usize = board
+                .numbers
+                .iter()
+                .filter_map(|(n, marked)| if !marked { Some(n) } else { None })
+                .sum();
+
+            dbg!(unmarked_sum);
+            dbg!(n);
+
+            answer = unmarked_sum * n;
+        }
+    }
+
+    answer
 }
 
 fn main() {
     dbg!(part1(INPUT));
-    // dbg!(part2(INPUT));
+    dbg!(part2(INPUT));
 }
 
 #[cfg(test)]
@@ -159,13 +177,13 @@ mod tests {
         assert_eq!(part1(INPUT), 34506);
     }
 
-    // #[test]
-    // fn test_part2_sample() {
-    //     assert_eq!(part2(SAMPLE_INPUT), 900);
-    // }
+    #[test]
+    fn test_part2_sample() {
+        assert_eq!(part2(SAMPLE_INPUT), 1924);
+    }
 
-    // #[test]
-    // fn test_part2() {
-    //     assert_eq!(part2(INPUT), 1781819478);
-    // }
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(INPUT), 7686);
+    }
 }
