@@ -1,4 +1,6 @@
 pub mod prelude {
+    pub use std::collections::VecDeque;
+
     use std::fmt::Debug;
     use std::str::FromStr;
 
