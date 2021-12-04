@@ -50,21 +50,20 @@ impl std::str::FromStr for BingoGame {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct BingoBoard {
     numbers: [(usize, bool); BINGO_BOARD_SIZE * BINGO_BOARD_SIZE],
 }
 
 impl BingoBoard {
     fn new(numbers: [usize; BINGO_BOARD_SIZE * BINGO_BOARD_SIZE]) -> Self {
-        let numbers = numbers
-            .into_iter()
-            .map(|n| (n, false))
-            .collect::<Vec<(usize, bool)>>()
-            .try_into()
-            .unwrap();
+        let mut board = Self::default();
 
-        BingoBoard { numbers }
+        for (idx, (n, _)) in board.numbers.iter_mut().enumerate() {
+            *n = numbers[idx];
+        }
+
+        board
     }
 
     fn mark_number(&mut self, number: usize) {
@@ -76,16 +75,18 @@ impl BingoBoard {
     }
 
     fn has_bingo(&self) -> bool {
-        for row in 0..BINGO_BOARD_SIZE {
+        for i in 0..BINGO_BOARD_SIZE {
+            // check row
             if (0..BINGO_BOARD_SIZE)
-                .map(|col| (row * BINGO_BOARD_SIZE) + col)
+                .map(|j| (i * BINGO_BOARD_SIZE) + j)
                 .all(|idx| self.numbers[idx].1)
             {
                 return true;
             }
 
+            // check column
             if (0..BINGO_BOARD_SIZE)
-                .map(|col| row + (BINGO_BOARD_SIZE * col))
+                .map(|j| i + (BINGO_BOARD_SIZE * j))
                 .all(|idx| self.numbers[idx].1)
             {
                 return true;
