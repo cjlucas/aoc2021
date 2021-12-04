@@ -50,14 +50,14 @@ impl std::str::FromStr for BingoGame {
 
 #[derive(Debug, Default)]
 struct BingoBoard {
-    numbers: [(usize, bool); BINGO_BOARD_SIZE * BINGO_BOARD_SIZE],
+    tiles: [(usize, bool); BINGO_BOARD_SIZE * BINGO_BOARD_SIZE],
 }
 
 impl BingoBoard {
     fn new(numbers: [usize; BINGO_BOARD_SIZE * BINGO_BOARD_SIZE]) -> Self {
         let mut board = Self::default();
 
-        for (idx, (n, _)) in board.numbers.iter_mut().enumerate() {
+        for (idx, (n, _)) in board.tiles.iter_mut().enumerate() {
             *n = numbers[idx];
         }
 
@@ -65,7 +65,7 @@ impl BingoBoard {
     }
 
     fn mark_number(&mut self, number: usize) {
-        for (n, marked) in self.numbers.iter_mut() {
+        for (n, marked) in self.tiles.iter_mut() {
             if *n == number {
                 *marked = true;
             }
@@ -78,7 +78,7 @@ impl BingoBoard {
                 return true;
             }
 
-            if self.col(i).all(|(_, marked)| marked) {
+            if self.column(i).all(|(_, marked)| marked) {
                 return true;
             }
         }
@@ -87,22 +87,22 @@ impl BingoBoard {
     }
 
     fn unmarked_sum(&self) -> usize {
-        self.numbers
+        self.tiles
             .iter()
             .filter_map(|(n, marked)| if !marked { Some(n) } else { None })
             .sum()
     }
 
     fn row(&self, row: usize) -> impl Iterator<Item = (usize, bool)> + '_ {
-        (0..BINGO_BOARD_SIZE)
-            .map(move |col| (row * BINGO_BOARD_SIZE) + col)
-            .map(|idx| self.numbers[idx])
+        (0..BINGO_BOARD_SIZE).map(move |col| self.tile(row, col))
     }
 
-    fn col(&self, col: usize) -> impl Iterator<Item = (usize, bool)> + '_ {
-        (0..BINGO_BOARD_SIZE)
-            .map(move |row| col + (BINGO_BOARD_SIZE * row))
-            .map(|idx| self.numbers[idx])
+    fn column(&self, col: usize) -> impl Iterator<Item = (usize, bool)> + '_ {
+        (0..BINGO_BOARD_SIZE).map(move |row| self.tile(row, col))
+    }
+
+    fn tile(&self, row: usize, column: usize) -> (usize, bool) {
+        self.tiles[(row * BINGO_BOARD_SIZE) + column]
     }
 }
 
