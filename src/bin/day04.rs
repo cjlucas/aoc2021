@@ -95,6 +95,13 @@ impl BingoBoard {
 
         false
     }
+
+    fn unmarked_sum(&self) -> usize {
+        self.numbers
+            .iter()
+            .filter_map(|(n, marked)| if !marked { Some(n) } else { None })
+            .sum()
+    }
 }
 
 impl std::str::FromStr for BingoBoard {
@@ -119,13 +126,7 @@ fn part1(input: &str) -> usize {
 
     while let Some(n) = game.draw() {
         if let Some(board) = game.mark_boards(n).first() {
-            let unmarked_sum: usize = board
-                .numbers
-                .iter()
-                .filter_map(|(n, marked)| if !marked { Some(n) } else { None })
-                .sum();
-
-            return unmarked_sum * n;
+            return board.unmarked_sum() * n;
         }
     }
 
@@ -141,13 +142,7 @@ fn part2(input: &str) -> usize {
         // we don't actually care which one wins, even though part2 require a SINGLE BOARD
         // to be the last winning board... kinda bullshit.
         if let Some(board) = game.mark_boards(n).first() {
-            let unmarked_sum: usize = board
-                .numbers
-                .iter()
-                .filter_map(|(n, marked)| if !marked { Some(n) } else { None })
-                .sum();
-
-            answer = unmarked_sum * n;
+            answer = board.unmarked_sum() * n;
         }
     }
 
