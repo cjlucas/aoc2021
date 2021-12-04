@@ -1,0 +1,171 @@
+use aoc2021::prelude::*;
+
+const INPUT: &'static str = include_str!("../../inputs/day04.txt");
+
+const BINGO_BOARD_SIZE: usize = 5;
+
+#[derive(Debug)]
+struct BingoGame {
+    numbers: Vec<usize>,
+    boards: Vec<BingoBoard>,
+}
+
+impl BingoGame {
+    fn draw(&mut self) -> usize {
+        self.numbers.remove(0)
+    }
+
+    fn mark_boards(&mut self, number: usize) -> Option<&BingoBoard> {
+        for board in &mut self.boards {
+            board.mark_number(number);
+
+            if board.has_bingo() {
+                return Some(board);
+            }
+        }
+
+        None
+    }
+}
+
+impl std::str::FromStr for BingoGame {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut split = s.split_terminator("\n\n");
+
+        let numbers: Vec<usize> = split
+            .next()
+            .unwrap()
+            .split(',')
+            .map(|n| n.parse::<usize>().unwrap())
+            .collect();
+
+        let boards: Vec<BingoBoard> = split
+            .map(|board| board.parse::<BingoBoard>().unwrap())
+            .collect();
+
+        Ok(BingoGame { numbers, boards })
+    }
+}
+
+#[derive(Debug)]
+struct BingoBoard {
+    numbers: [(usize, bool); BINGO_BOARD_SIZE * BINGO_BOARD_SIZE],
+}
+
+impl BingoBoard {
+    fn new(numbers: [usize; BINGO_BOARD_SIZE * BINGO_BOARD_SIZE]) -> Self {
+        let numbers = numbers
+            .into_iter()
+            .map(|n| (n, false))
+            .collect::<Vec<(usize, bool)>>()
+            .try_into()
+            .unwrap();
+
+        BingoBoard { numbers }
+    }
+
+    fn mark_number(&mut self, number: usize) {
+        for (n, marked) in self.numbers.iter_mut() {
+            if *n == number {
+                *marked = true;
+            }
+        }
+    }
+
+    fn has_bingo(&self) -> bool {
+        for row in 0..BINGO_BOARD_SIZE {
+            if (0..BINGO_BOARD_SIZE)
+                .map(|col| (row * BINGO_BOARD_SIZE) + col)
+                .all(|idx| self.numbers[idx].1)
+            {
+                return true;
+            }
+
+            if (0..BINGO_BOARD_SIZE)
+                .map(|col| row + (BINGO_BOARD_SIZE * col))
+                .all(|idx| self.numbers[idx].1)
+            {
+                return true;
+            }
+        }
+
+        false
+    }
+}
+
+impl std::str::FromStr for BingoBoard {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut numbers = [0; BINGO_BOARD_SIZE * BINGO_BOARD_SIZE];
+
+        for (row, line) in s.lines().enumerate() {
+            for (col, num) in line.split_whitespace().enumerate() {
+                let idx = (row * BINGO_BOARD_SIZE) + col;
+                numbers[idx] = num.parse().unwrap();
+            }
+        }
+
+        Ok(BingoBoard::new(numbers))
+    }
+}
+
+fn part1(input: &str) -> usize {
+    let mut game = input.parse::<BingoGame>().unwrap();
+
+    loop {
+        let n = game.draw();
+
+        if let Some(board) = game.mark_boards(n) {
+            println!("GOT A WINNER");
+
+            // dbg!(board);
+
+            let unmarked_sum: usize = board
+                .numbers
+                .iter()
+                .filter_map(|(n, marked)| if !marked { Some(n) } else { None })
+                .sum();
+
+            return unmarked_sum * n;
+        }
+    }
+}
+
+fn part2(input: &str) -> usize {
+    todo!()
+}
+
+fn main() {
+    dbg!(part1(INPUT));
+    // dbg!(part2(INPUT));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SAMPLE_INPUT: &'static str = include_str!("../../inputs/day04_sample.txt");
+
+    #[test]
+    fn test_part1_sample() {
+        assert_eq!(part1(SAMPLE_INPUT), 4512);
+    }
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(INPUT), 34506);
+    }
+
+    // #[test]
+    // fn test_part2_sample() {
+    //     assert_eq!(part2(SAMPLE_INPUT), 900);
+    // }
+
+    // #[test]
+    // fn test_part2() {
+    //     assert_eq!(part2(INPUT), 1781819478);
+    // }
+}
