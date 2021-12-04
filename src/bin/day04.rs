@@ -1,15 +1,17 @@
+use aoc2021::prelude::*;
+
 const INPUT: &'static str = include_str!("../../inputs/day04.txt");
 
 const BINGO_BOARD_SIZE: usize = 5;
 
 #[derive(Debug)]
 struct BingoGame {
-    numbers: Vec<usize>,
+    numbers: VecDeque<usize>,
     boards: Vec<BingoBoard>,
 }
 
 impl BingoGame {
-    fn draw(&mut self) -> usize {
+    fn draw(&mut self) -> Option<usize> {
         self.numbers.remove(0)
     }
 
@@ -33,7 +35,7 @@ impl std::str::FromStr for BingoGame {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut split = s.split_terminator("\n\n");
 
-        let numbers: Vec<usize> = split
+        let numbers: VecDeque<usize> = split
             .next()
             .unwrap()
             .split(',')
@@ -114,9 +116,7 @@ impl std::str::FromStr for BingoBoard {
 fn part1(input: &str) -> usize {
     let mut game = input.parse::<BingoGame>().unwrap();
 
-    loop {
-        let n = game.draw();
-
+    while let Some(n) = game.draw() {
         if let Some(board) = game.mark_boards(n).first() {
             let unmarked_sum: usize = board
                 .numbers
@@ -127,15 +127,15 @@ fn part1(input: &str) -> usize {
             return unmarked_sum * n;
         }
     }
+
+    unreachable!("ran out of numbers before winning board found");
 }
 
 fn part2(input: &str) -> usize {
     let mut game = input.parse::<BingoGame>().unwrap();
 
     let mut answer = 0;
-    while !game.numbers.is_empty() {
-        let n = game.draw();
-
+    while let Some(n) = game.draw() {
         // Note: in the case where multiple boards win on a given draw (as happens in part2),
         // we don't actually care which one wins, even though part2 require a SINGLE BOARD
         // to be the last winning board... kinda bullshit.
