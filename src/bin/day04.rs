@@ -14,12 +14,15 @@ impl BingoGame {
     }
 
     fn mark_boards(&mut self, number: usize) -> Option<BingoBoard> {
-        for (idx, board) in self.boards.iter_mut().enumerate() {
+        for board in self.boards.iter_mut() {
             board.mark_number(number);
         }
 
         let mut board = None;
 
+        // Note: in the case where multiple boards win on a given draw (as happens in part2),
+        // we don't actually care which one wins, even though part2 require a SINGLE BOARD
+        // to be the last winning board (kinda bullshit)
         while let Some(idx) = self.boards.iter().position(|board| board.has_bingo()) {
             board = Some(self.boards.swap_remove(idx));
         }
@@ -119,8 +122,6 @@ fn part1(input: &str) -> usize {
         let n = game.draw();
 
         if let Some(board) = game.mark_boards(n) {
-            println!("GOT A WINNER");
-
             let unmarked_sum: usize = board
                 .numbers
                 .iter()
@@ -145,9 +146,6 @@ fn part2(input: &str) -> usize {
                 .iter()
                 .filter_map(|(n, marked)| if !marked { Some(n) } else { None })
                 .sum();
-
-            dbg!(unmarked_sum);
-            dbg!(n);
 
             answer = unmarked_sum * n;
         }
