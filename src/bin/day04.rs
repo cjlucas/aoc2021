@@ -76,19 +76,11 @@ impl BingoBoard {
 
     fn has_bingo(&self) -> bool {
         for i in 0..BINGO_BOARD_SIZE {
-            // check row
-            if (0..BINGO_BOARD_SIZE)
-                .map(|j| (i * BINGO_BOARD_SIZE) + j)
-                .all(|idx| self.numbers[idx].1)
-            {
+            if self.row(i).all(|(_, marked)| marked) {
                 return true;
             }
 
-            // check column
-            if (0..BINGO_BOARD_SIZE)
-                .map(|j| i + (BINGO_BOARD_SIZE * j))
-                .all(|idx| self.numbers[idx].1)
-            {
+            if self.col(i).all(|(_, marked)| marked) {
                 return true;
             }
         }
@@ -101,6 +93,18 @@ impl BingoBoard {
             .iter()
             .filter_map(|(n, marked)| if !marked { Some(n) } else { None })
             .sum()
+    }
+
+    fn row(&self, row: usize) -> impl Iterator<Item = (usize, bool)> + '_ {
+        (0..BINGO_BOARD_SIZE)
+            .map(move |col| (row * BINGO_BOARD_SIZE) + col)
+            .map(|idx| self.numbers[idx])
+    }
+
+    fn col(&self, col: usize) -> impl Iterator<Item = (usize, bool)> + '_ {
+        (0..BINGO_BOARD_SIZE)
+            .map(move |row| col + (BINGO_BOARD_SIZE * row))
+            .map(|idx| self.numbers[idx])
     }
 }
 
