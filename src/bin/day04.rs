@@ -12,7 +12,7 @@ struct BingoGame {
 
 impl BingoGame {
     fn draw(&mut self) -> Option<usize> {
-        self.numbers.remove(0)
+        self.numbers.pop_front()
     }
 
     fn mark_boards(&mut self, number: usize) -> Vec<BingoBoard> {
