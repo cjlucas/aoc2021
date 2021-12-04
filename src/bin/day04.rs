@@ -13,21 +13,17 @@ impl BingoGame {
         self.numbers.remove(0)
     }
 
-    fn mark_boards(&mut self, number: usize) -> Option<BingoBoard> {
+    fn mark_boards(&mut self, number: usize) -> Vec<BingoBoard> {
         for board in self.boards.iter_mut() {
             board.mark_number(number);
         }
 
-        let mut board = None;
-
-        // Note: in the case where multiple boards win on a given draw (as happens in part2),
-        // we don't actually care which one wins, even though part2 require a SINGLE BOARD
-        // to be the last winning board (kinda bullshit)
+        let mut winning_boards = vec![];
         while let Some(idx) = self.boards.iter().position(|board| board.has_bingo()) {
-            board = Some(self.boards.swap_remove(idx));
+            winning_boards.push(self.boards.swap_remove(idx));
         }
 
-        board
+        winning_boards
     }
 }
 
@@ -121,7 +117,7 @@ fn part1(input: &str) -> usize {
     loop {
         let n = game.draw();
 
-        if let Some(board) = game.mark_boards(n) {
+        if let Some(board) = game.mark_boards(n).first() {
             let unmarked_sum: usize = board
                 .numbers
                 .iter()
@@ -140,7 +136,10 @@ fn part2(input: &str) -> usize {
     while !game.numbers.is_empty() {
         let n = game.draw();
 
-        if let Some(board) = game.mark_boards(n) {
+        // Note: in the case where multiple boards win on a given draw (as happens in part2),
+        // we don't actually care which one wins, even though part2 require a SINGLE BOARD
+        // to be the last winning board... kinda bullshit.
+        if let Some(board) = game.mark_boards(n).first() {
             let unmarked_sum: usize = board
                 .numbers
                 .iter()
