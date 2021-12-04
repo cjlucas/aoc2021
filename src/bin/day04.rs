@@ -35,16 +35,14 @@ impl std::str::FromStr for BingoGame {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut split = s.split_terminator("\n\n");
 
-        let numbers: VecDeque<usize> = split
+        let numbers = split
             .next()
             .unwrap()
             .split(',')
-            .map(|n| n.parse::<usize>().unwrap())
+            .map(|n| n.parse().unwrap())
             .collect();
 
-        let boards: Vec<BingoBoard> = split
-            .map(|board| board.parse::<BingoBoard>().unwrap())
-            .collect();
+        let boards = split.map(|board| board.parse().unwrap()).collect();
 
         Ok(BingoGame { numbers, boards })
     }
