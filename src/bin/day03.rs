@@ -12,17 +12,7 @@ impl DiagnosticReport {
     fn add_bitstring(&mut self, bitstring: impl AsRef<str>) {
         self.bitstrings.push(bitstring.as_ref().to_string());
 
-        for (idx, c) in bitstring.as_ref().char_indices() {
-            if idx >= self.bit_tally.len() {
-                self.bit_tally.push(0);
-            }
-
-            if c == '1' {
-                self.bit_tally[idx] += 1;
-            } else {
-                self.bit_tally[idx] -= 1;
-            }
-        }
+        self.bit_tally = Self::tally_bitstrings(&self.bitstrings);
     }
 
     fn gamma_rate(&self) -> usize {
@@ -37,12 +27,84 @@ impl DiagnosticReport {
         n
     }
 
+    fn tally_bitstrings(bitstrings: &[String]) -> Vec<i32> {
+        let mut bit_tally = vec![0; bitstrings[0].len()];
+
+        for bitstring in bitstrings {
+            for (idx, c) in bitstring.char_indices() {
+                if c == '1' {
+                    bit_tally[idx] += 1;
+                } else {
+                    bit_tally[idx] -= 1;
+                }
+            }
+        }
+
+        bit_tally
+    }
+
     fn epsilon_rate(&self) -> usize {
         let mut n = 0;
 
         for (idx, tally) in self.bit_tally.iter().enumerate() {
             if *tally < 0 {
                 n += 1 << (self.bit_tally.len() - idx - 1);
+            }
+        }
+
+        n
+    }
+
+    fn oxygen_generator_rating(&self) -> usize {
+        let mut bitstrings = self.bitstrings.clone();
+        let mut bit_tally = self.bit_tally.clone();
+
+        for idx in 0..self.bit_tally.len() {
+            if bitstrings.len() == 1 {
+                break;
+            }
+
+            let c = if bit_tally[idx] >= 0 { '1' } else { '0' };
+
+            bitstrings = bitstrings
+                .into_iter()
+                .filter(|bs| bs.chars().nth(idx).unwrap() == c)
+                .collect();
+
+            bit_tally = Self::tally_bitstrings(&bitstrings);
+        }
+
+        Self::bitstring_to_usize(&bitstrings[0])
+    }
+
+    fn co2_scrubber_rating(&self) -> usize {
+        let mut bitstrings = self.bitstrings.clone();
+        let mut bit_tally = self.bit_tally.clone();
+
+        for idx in 0..self.bit_tally.len() {
+            if bitstrings.len() == 1 {
+                break;
+            }
+
+            let c = if bit_tally[idx] >= 0 { '0' } else { '1' };
+
+            bitstrings = bitstrings
+                .into_iter()
+                .filter(|bs| bs.chars().nth(idx).unwrap() == c)
+                .collect();
+
+            bit_tally = Self::tally_bitstrings(&bitstrings);
+        }
+
+        Self::bitstring_to_usize(&bitstrings[0])
+    }
+
+    fn bitstring_to_usize(s: &String) -> usize {
+        let mut n = 0;
+
+        for (idx, c) in s.char_indices() {
+            if c == '1' {
+                n += 1 << (s.len() - idx - 1);
             }
         }
 
@@ -87,6 +149,7 @@ fn find_oxygen_generator_rating(bitstrings: Vec<String>, index: usize) -> String
 
 fn find_co2_scubber_rating(bitstrings: Vec<String>, index: usize) -> String {
     if bitstrings.len() == 1 {
+        dbg!(&bitstrings[0]);
         return bitstrings[0].clone();
     }
 
@@ -111,27 +174,13 @@ fn find_co2_scubber_rating(bitstrings: Vec<String>, index: usize) -> String {
 }
 
 fn part2(input: &str) -> usize {
-    let s = find_oxygen_generator_rating(input.lines().map(str::to_string).collect(), 0);
+    let mut report = DiagnosticReport::default();
 
-    let mut oxygen_generator_rating = 0;
-
-    for (idx, c) in s.char_indices() {
-        if c == '1' {
-            oxygen_generator_rating += 1 << (s.len() - idx - 1);
-        }
+    for line in input.lines() {
+        report.add_bitstring(line);
     }
 
-    let s = find_co2_scubber_rating(input.lines().map(str::to_string).collect(), 0);
-
-    let mut co2_scrubber_rating = 0;
-
-    for (idx, c) in s.char_indices() {
-        if c == '1' {
-            co2_scrubber_rating += 1 << (s.len() - idx - 1);
-        }
-    }
-
-    oxygen_generator_rating * co2_scrubber_rating
+    report.oxygen_generator_rating() * report.co2_scrubber_rating()
 }
 
 fn main() {
