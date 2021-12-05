@@ -2,36 +2,62 @@ use aoc2021::prelude::*;
 
 const INPUT: &'static str = include_str!("../../inputs/day03.txt");
 
-fn part1(input: &str) -> usize {
-    let num_lines = input.lines().count();
-    let num_bits = input.lines().next().unwrap().len();
-    let mut counts = vec![0; num_bits];
+#[derive(Default)]
+struct DiagnosticReport {
+    bitstrings: Vec<String>,
+    bit_tally: Vec<i32>,
+}
 
-    for line in input.lines() {
-        for (idx, c) in line.char_indices() {
+impl DiagnosticReport {
+    fn add_bitstring(&mut self, bitstring: impl AsRef<str>) {
+        self.bitstrings.push(bitstring.as_ref().to_string());
+
+        for (idx, c) in bitstring.as_ref().char_indices() {
+            if idx >= self.bit_tally.len() {
+                self.bit_tally.push(0);
+            }
+
             if c == '1' {
-                counts[idx] += 1;
+                self.bit_tally[idx] += 1;
+            } else {
+                self.bit_tally[idx] -= 1;
             }
         }
     }
 
-    let mut gamma_rate = 0;
+    fn gamma_rate(&self) -> usize {
+        let mut n = 0;
 
-    for (idx, cnt) in counts.iter().enumerate() {
-        if *cnt > (num_lines - cnt) {
-            gamma_rate += 1 << (num_bits - idx - 1);
+        for (idx, tally) in self.bit_tally.iter().enumerate() {
+            if *tally >= 0 {
+                n += 1 << (self.bit_tally.len() - idx - 1);
+            }
         }
+
+        n
     }
 
-    let mut epsilon_rate = 0;
+    fn epsilon_rate(&self) -> usize {
+        let mut n = 0;
 
-    for (idx, cnt) in counts.iter().enumerate() {
-        if *cnt < (num_lines - cnt) {
-            epsilon_rate += 1 << (num_bits - idx - 1);
+        for (idx, tally) in self.bit_tally.iter().enumerate() {
+            if *tally < 0 {
+                n += 1 << (self.bit_tally.len() - idx - 1);
+            }
         }
+
+        n
+    }
+}
+
+fn part1(input: &str) -> usize {
+    let mut report = DiagnosticReport::default();
+
+    for line in input.lines() {
+        report.add_bitstring(line);
     }
 
-    gamma_rate * epsilon_rate
+    report.gamma_rate() * report.epsilon_rate()
 }
 
 fn find_oxygen_generator_rating(bitstrings: Vec<String>, index: usize) -> String {
