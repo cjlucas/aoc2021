@@ -2,46 +2,43 @@ use aoc2021::prelude::*;
 
 const INPUT: &'static str = include_str!("../../inputs/day05.txt");
 
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct Line {
     start: Point,
     end: Point,
+    points: HashSet<Point>,
 }
 
 impl Line {
-    fn interpolate(&self) -> Vec<Point> {
-        let mut points = vec![];
-        let (mut x, mut y) = (self.start.x, self.start.y);
-        points.push(self.start.clone());
+    fn new(start: Point, end: Point) -> Self {
+        let mut points = HashSet::new();
+        let (mut x, mut y) = (start.x, start.y);
+        points.insert(start.clone());
 
-        while x != self.end.x || y != self.end.y {
-            if x < self.end.x {
+        while x != end.x || y != end.y {
+            if x < end.x {
                 x += 1;
-            } else if x > self.end.x {
+            } else if x > end.x {
                 x -= 1;
             }
 
-            if y < self.end.y {
+            if y < end.y {
                 y += 1;
-            } else if y > self.end.y {
+            } else if y > end.y {
                 y -= 1
             }
 
-            points.push(Point { x, y })
+            points.insert(Point { x, y });
         }
 
-        points
+        Self { start, end, points }
+    }
+    fn intersecting_points(&self, other: &Self) -> Vec<Point> {
+        self.points.intersection(&other.points).cloned().collect()
     }
 
     fn is_diagonal(&self) -> bool {
         self.start.x != self.end.x && self.start.y != self.end.y
-    }
-
-    fn covers(&self, point: &Point) -> bool {
-        self.interpolate()
-            .into_iter()
-            .find(|p| point == p)
-            .is_some()
     }
 }
 
@@ -53,11 +50,11 @@ impl std::str::FromStr for Line {
         let start = start.parse().unwrap();
         let end = end.parse().unwrap();
 
-        Ok(Self { start, end })
+        Ok(Self::new(start, end))
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct Point {
     x: usize,
     y: usize,
@@ -75,63 +72,33 @@ impl std::str::FromStr for Point {
     }
 }
 
-fn count_overlaps(lines: Vec<Line>) -> usize {
-    let mut max_x = 0;
-    let mut max_y = 0;
+fn new_count_overlaps(mut lines: Vec<Line>) -> usize {
+    let mut intersecting_points = HashSet::new();
 
-    for line in &lines {
-        if line.start.x > max_x {
-            max_x = line.start.x;
-        }
-
-        if line.end.x > max_x {
-            max_x = line.end.x;
-        }
-
-        if line.start.y > max_y {
-            max_y = line.start.y;
-        }
-
-        if line.end.y > max_y {
-            max_y = line.end.y;
-        }
-    }
-
-    let mut at_least_two_overlaps = 0;
-
-    for x in 0..=max_x {
-        for y in 0..=max_y {
-            let point = Point { x, y };
-            let mut hits = 0;
-
-            for line in &lines {
-                if line.covers(&point) {
-                    hits += 1;
-                }
-            }
-
-            if hits >= 2 {
-                at_least_two_overlaps += 1;
+    while let Some(line) = lines.pop() {
+        for other_line in &lines {
+            for point in line.intersecting_points(&other_line) {
+                intersecting_points.insert(point);
             }
         }
     }
 
-    at_least_two_overlaps
+    intersecting_points.len()
 }
 
 fn part1(input: &str) -> usize {
-    let lines = parse_lines::<Line>(input)
+    let lines: Vec<_> = parse_lines::<Line>(input)
         .into_iter()
         .filter(|line| !line.is_diagonal())
         .collect();
 
-    count_overlaps(lines)
+    dbg!(new_count_overlaps(lines))
 }
 
 fn part2(input: &str) -> usize {
     let lines = parse_lines::<Line>(input);
 
-    count_overlaps(lines)
+    dbg!(new_count_overlaps(lines))
 }
 
 fn main() {
@@ -150,17 +117,17 @@ mod tests {
         assert_eq!(part1(SAMPLE_INPUT), 5);
     }
 
-    // #[test]
-    // fn test_part1() {
-    //     assert_eq!(part1(INPUT), 6113);
-    // }
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(INPUT), 6113);
+    }
 
     fn test_part2_sample() {
         assert_eq!(part2(SAMPLE_INPUT), 12);
     }
 
-    // #[test]
-    // fn test_part2() {
-    //     assert_eq!(part2(INPUT), 20373);
-    // }
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(INPUT), 20373);
+    }
 }
