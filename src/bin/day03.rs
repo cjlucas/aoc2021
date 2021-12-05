@@ -1,5 +1,3 @@
-use aoc2021::prelude::*;
-
 const INPUT: &'static str = include_str!("../../inputs/day03.txt");
 
 #[derive(Default)]
@@ -117,65 +115,14 @@ impl DiagnosticReport {
 
 fn part1(input: &str) -> usize {
     let bitstrings = input.lines().map(|s| s.to_string());
-    let mut report = DiagnosticReport::new(bitstrings);
+    let report = DiagnosticReport::new(bitstrings);
 
     report.gamma_rate() * report.epsilon_rate()
 }
 
-fn find_oxygen_generator_rating(bitstrings: Vec<String>, index: usize) -> String {
-    if bitstrings.len() == 1 {
-        return bitstrings[0].clone();
-    }
-
-    let mut cnt = 0i32;
-
-    for bs in &bitstrings {
-        if bs.chars().nth(index).unwrap() == '1' {
-            cnt += 1;
-        } else {
-            cnt -= 1;
-        }
-    }
-
-    let c = if cnt >= 0 { '1' } else { '0' };
-
-    let bitstrings = bitstrings
-        .into_iter()
-        .filter(|s| s.chars().nth(index).unwrap() == c)
-        .collect();
-
-    find_oxygen_generator_rating(bitstrings, index + 1)
-}
-
-fn find_co2_scubber_rating(bitstrings: Vec<String>, index: usize) -> String {
-    if bitstrings.len() == 1 {
-        dbg!(&bitstrings[0]);
-        return bitstrings[0].clone();
-    }
-
-    let mut cnt = 0i32;
-
-    for bs in &bitstrings {
-        if bs.chars().nth(index).unwrap() == '1' {
-            cnt += 1;
-        } else {
-            cnt -= 1;
-        }
-    }
-
-    let c = if cnt >= 0 { '0' } else { '1' };
-
-    let bitstrings = bitstrings
-        .into_iter()
-        .filter(|s| s.chars().nth(index).unwrap() == c)
-        .collect();
-
-    find_co2_scubber_rating(bitstrings, index + 1)
-}
-
 fn part2(input: &str) -> usize {
     let bitstrings = input.lines().map(|s| s.to_string());
-    let mut report = DiagnosticReport::new(bitstrings);
+    let report = DiagnosticReport::new(bitstrings);
 
     report.oxygen_generator_rating() * report.co2_scrubber_rating()
 }
