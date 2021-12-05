@@ -9,12 +9,15 @@ struct DiagnosticReport {
 }
 
 impl DiagnosticReport {
-    fn add_bitstring(&mut self, bitstring: impl AsRef<str>) {
-        self.bitstrings.push(bitstring.as_ref().to_string());
+    fn new(bitstrings: impl Iterator<Item = String>) -> Self {
+        let bitstrings: Vec<_> = bitstrings.collect();
+        let bit_tally = Self::tally_bitstrings(&bitstrings);
 
-        self.bit_tally = Self::tally_bitstrings(&self.bitstrings);
+        Self {
+            bitstrings,
+            bit_tally,
+        }
     }
-
     fn gamma_rate(&self) -> usize {
         let mut n = 0;
 
@@ -113,11 +116,8 @@ impl DiagnosticReport {
 }
 
 fn part1(input: &str) -> usize {
-    let mut report = DiagnosticReport::default();
-
-    for line in input.lines() {
-        report.add_bitstring(line);
-    }
+    let bitstrings = input.lines().map(|s| s.to_string());
+    let mut report = DiagnosticReport::new(bitstrings);
 
     report.gamma_rate() * report.epsilon_rate()
 }
@@ -174,11 +174,8 @@ fn find_co2_scubber_rating(bitstrings: Vec<String>, index: usize) -> String {
 }
 
 fn part2(input: &str) -> usize {
-    let mut report = DiagnosticReport::default();
-
-    for line in input.lines() {
-        report.add_bitstring(line);
-    }
+    let bitstrings = input.lines().map(|s| s.to_string());
+    let mut report = DiagnosticReport::new(bitstrings);
 
     report.oxygen_generator_rating() * report.co2_scrubber_rating()
 }
