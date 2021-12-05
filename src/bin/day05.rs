@@ -9,24 +9,39 @@ struct Line {
 }
 
 impl Line {
+    fn interpolate(&self) -> Vec<Point> {
+        let mut points = vec![];
+        let (mut x, mut y) = (self.start.x, self.start.y);
+        points.push(self.start.clone());
+
+        while x != self.end.x || y != self.end.y {
+            if x < self.end.x {
+                x += 1;
+            } else if x > self.end.x {
+                x -= 1;
+            }
+
+            if y < self.end.y {
+                y += 1;
+            } else if y > self.end.y {
+                y -= 1
+            }
+
+            points.push(Point { x, y })
+        }
+
+        points
+    }
+
     fn is_diagonal(&self) -> bool {
         self.start.x != self.end.x && self.start.y != self.end.y
     }
 
     fn covers(&self, point: &Point) -> bool {
-        let mut result = false;
-
-        if self.start.x == point.x {
-            result =
-                point.y >= self.start.y.min(self.end.y) && point.y <= self.start.y.max(self.end.y);
-        }
-
-        if !result && self.start.y == point.y {
-            result =
-                point.x >= self.start.x.min(self.end.x) && point.x <= self.start.x.max(self.end.x);
-        }
-
-        result
+        self.interpolate()
+            .into_iter()
+            .find(|p| point == p)
+            .is_some()
     }
 }
 
@@ -42,7 +57,7 @@ impl std::str::FromStr for Line {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 struct Point {
     x: usize,
     y: usize,
@@ -60,9 +75,7 @@ impl std::str::FromStr for Point {
     }
 }
 
-fn part1(input: &str) -> usize {
-    let lines: Vec<_> = parse_lines::<Line>(input);
-
+fn count_overlaps(lines: Vec<Line>) -> usize {
     let mut max_x = 0;
     let mut max_y = 0;
 
@@ -91,7 +104,7 @@ fn part1(input: &str) -> usize {
             let point = Point { x, y };
             let mut hits = 0;
 
-            for line in lines.iter().filter(|line| !line.is_diagonal()) {
+            for line in &lines {
                 if line.covers(&point) {
                     hits += 1;
                 }
@@ -106,12 +119,24 @@ fn part1(input: &str) -> usize {
     at_least_two_overlaps
 }
 
-// fn part2(input: &str) -> usize {
-// }
+fn part1(input: &str) -> usize {
+    let lines = parse_lines::<Line>(input)
+        .into_iter()
+        .filter(|line| !line.is_diagonal())
+        .collect();
+
+    count_overlaps(lines)
+}
+
+fn part2(input: &str) -> usize {
+    let lines = parse_lines::<Line>(input);
+
+    count_overlaps(lines)
+}
 
 fn main() {
     dbg!(part1(INPUT));
-    // dbg!(part2(INPUT));
+    dbg!(part2(INPUT));
 }
 
 #[cfg(test)]
@@ -125,18 +150,17 @@ mod tests {
         assert_eq!(part1(SAMPLE_INPUT), 5);
     }
 
-    #[test]
-    fn test_part1() {
-        assert_eq!(part1(INPUT), 0);
+    // #[test]
+    // fn test_part1() {
+    //     assert_eq!(part1(INPUT), 6113);
+    // }
+
+    fn test_part2_sample() {
+        assert_eq!(part2(SAMPLE_INPUT), 12);
     }
 
     // #[test]
-    // fn test_part2_sample() {
-    //     assert_eq!(part2(SAMPLE_INPUT), 1924);
-    // }
-
-    // #[test]
     // fn test_part2() {
-    //     assert_eq!(part2(INPUT), 7686);
+    //     assert_eq!(part2(INPUT), 20373);
     // }
 }
