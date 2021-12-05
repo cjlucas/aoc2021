@@ -16,17 +16,6 @@ impl DiagnosticReport {
             bit_tally,
         }
     }
-    fn gamma_rate(&self) -> usize {
-        let mut n = 0;
-
-        for (idx, tally) in self.bit_tally.iter().enumerate() {
-            if *tally >= 0 {
-                n += 1 << (self.bit_tally.len() - idx - 1);
-            }
-        }
-
-        n
-    }
 
     fn tally_bitstrings(bitstrings: &[String]) -> Vec<i32> {
         let mut bit_tally = vec![0; bitstrings[0].len()];
@@ -42,6 +31,18 @@ impl DiagnosticReport {
         }
 
         bit_tally
+    }
+
+    fn gamma_rate(&self) -> usize {
+        let mut n = 0;
+
+        for (idx, tally) in self.bit_tally.iter().enumerate() {
+            if *tally >= 0 {
+                n += 1 << (self.bit_tally.len() - idx - 1);
+            }
+        }
+
+        n
     }
 
     fn epsilon_rate(&self) -> usize {
