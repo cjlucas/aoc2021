@@ -9,17 +9,8 @@ fn simulate_laternfish_lifecycle(input: &str, num_days: usize) -> usize {
     }
 
     for _ in 0..num_days {
-        let expired_timers = timers[0];
-
-        for i in 1..timers.len() {
-            timers[i - 1] = timers[i];
-        }
-
-        // reset expired timers
-        timers[6] += expired_timers;
-
-        // spawn new fish
-        timers[8] = expired_timers;
+        timers.rotate_left(1);
+        timers[6] += timers[8];
     }
 
     timers.iter().sum()
