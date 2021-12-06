@@ -1,5 +1,3 @@
-use aoc2021::prelude::*;
-
 const INPUT: &'static str = include_str!("../../inputs/day06.txt");
 
 fn simulate_laternfish_lifecycle(input: &str, num_days: usize) -> usize {
@@ -11,14 +9,17 @@ fn simulate_laternfish_lifecycle(input: &str, num_days: usize) -> usize {
     }
 
     for _ in 0..num_days {
-        let new_fish = timers[0];
+        let expired_timers = timers[0];
 
-        for i in 1..9 {
+        for i in 1..timers.len() {
             timers[i - 1] = timers[i];
         }
 
-        timers[6] += new_fish;
-        timers[8] = new_fish;
+        // reset expired timers
+        timers[6] += expired_timers;
+
+        // spawn new fish
+        timers[8] = expired_timers;
     }
 
     timers.iter().sum()
