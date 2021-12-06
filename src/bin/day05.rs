@@ -33,8 +33,8 @@ impl Line {
 
         Self { start, end, points }
     }
-    fn intersecting_points(&self, other: &Self) -> Vec<Point> {
-        self.points.intersection(&other.points).cloned().collect()
+    fn intersecting_points<'a>(&'a self, other: &'a Self) -> impl Iterator<Item = &'a Point> {
+        self.points.intersection(&other.points)
     }
 
     fn is_diagonal(&self) -> bool {
@@ -78,7 +78,7 @@ fn count_intersecting_points(mut lines: Vec<Line>) -> usize {
     while let Some(line) = lines.pop() {
         for other_line in &lines {
             for point in line.intersecting_points(&other_line) {
-                intersecting_points.insert(point);
+                intersecting_points.insert(point.clone());
             }
         }
     }
@@ -122,6 +122,7 @@ mod tests {
         assert_eq!(part1(INPUT), 6113);
     }
 
+    #[test]
     fn test_part2_sample() {
         assert_eq!(part2(SAMPLE_INPUT), 12);
     }
