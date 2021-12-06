@@ -72,7 +72,7 @@ impl std::str::FromStr for Point {
     }
 }
 
-fn new_count_overlaps(mut lines: Vec<Line>) -> usize {
+fn count_intersecting_points(mut lines: Vec<Line>) -> usize {
     let mut intersecting_points = HashSet::new();
 
     while let Some(line) = lines.pop() {
@@ -92,13 +92,13 @@ fn part1(input: &str) -> usize {
         .filter(|line| !line.is_diagonal())
         .collect();
 
-    dbg!(new_count_overlaps(lines))
+    count_intersecting_points(lines)
 }
 
 fn part2(input: &str) -> usize {
     let lines = parse_lines::<Line>(input);
 
-    dbg!(new_count_overlaps(lines))
+    count_intersecting_points(lines)
 }
 
 fn main() {
