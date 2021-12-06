@@ -1,6 +1,6 @@
 const INPUT: &'static str = include_str!("../../inputs/day06.txt");
 
-fn simulate_laternfish_lifecycle(input: &str, num_days: usize) -> usize {
+fn simulate_lanternfish_lifecycle(input: &str, num_days: usize) -> usize {
     let mut timers = [0usize; 9];
 
     for timer in input.trim().split(',') {
@@ -17,11 +17,11 @@ fn simulate_laternfish_lifecycle(input: &str, num_days: usize) -> usize {
 }
 
 fn part1(input: &str) -> usize {
-    simulate_laternfish_lifecycle(input, 80)
+    simulate_lanternfish_lifecycle(input, 80)
 }
 
 fn part2(input: &str) -> usize {
-    simulate_laternfish_lifecycle(input, 256)
+    simulate_lanternfish_lifecycle(input, 256)
 }
 
 fn main() {
