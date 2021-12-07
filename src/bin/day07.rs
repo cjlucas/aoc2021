@@ -1,3 +1,5 @@
+#![feature(int_abs_diff)]
+
 const INPUT: &'static str = include_str!("../../inputs/day07.txt");
 
 fn calculate_fuel_usage(
@@ -7,7 +9,7 @@ fn calculate_fuel_usage(
 ) -> usize {
     crabs
         .iter()
-        .map(|crab| fuel_usage_calculator((*crab as i64 - pos as i64).abs() as usize))
+        .map(|crab| fuel_usage_calculator(pos.abs_diff(*crab)))
         .sum()
 }
 
