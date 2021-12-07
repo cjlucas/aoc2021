@@ -38,7 +38,7 @@ fn run(input: &str, fuel_usage_calculator: fn(usize) -> usize) -> usize {
 
     let min_pos = *crab_positions.iter().min().unwrap();
     let max_pos = *crab_positions.iter().max().unwrap();
-    let possible_positions: Vec<usize> = (min_pos..=max_pos).collect();
+    let possible_positions = (min_pos..=max_pos).collect::<Vec<_>>();
 
     find_optimal_fuel_usage(&crab_positions, &possible_positions, fuel_usage_calculator)
 }
