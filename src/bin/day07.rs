@@ -11,7 +11,7 @@ fn calculate_fuel_usage(
         .sum()
 }
 
-fn find_optimal_position(
+fn find_optimal_fuel_usage(
     crabs: &[usize],
     positions: &[usize],
     fuel_usage_calculator: fn(usize) -> usize,
@@ -24,8 +24,8 @@ fn find_optimal_position(
     let left = &positions[..partition];
     let right = &positions[partition..];
 
-    let l = find_optimal_position(crabs, left, fuel_usage_calculator);
-    let r = find_optimal_position(crabs, right, fuel_usage_calculator);
+    let l = find_optimal_fuel_usage(crabs, left, fuel_usage_calculator);
+    let r = find_optimal_fuel_usage(crabs, right, fuel_usage_calculator);
 
     l.min(r)
 }
@@ -39,10 +39,9 @@ fn run(input: &str, fuel_usage_calculator: fn(usize) -> usize) -> usize {
 
     let min_pos = *crab_positions.iter().min().unwrap();
     let max_pos = *crab_positions.iter().max().unwrap();
-
     let possible_positions: Vec<usize> = (min_pos..=max_pos).collect();
 
-    find_optimal_position(&crab_positions, &possible_positions, fuel_usage_calculator)
+    find_optimal_fuel_usage(&crab_positions, &possible_positions, fuel_usage_calculator)
 }
 
 fn part1(input: &str) -> usize {
