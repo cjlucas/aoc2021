@@ -1,8 +1,36 @@
-use aoc2021::prelude::*;
-
 const INPUT: &'static str = include_str!("../../inputs/day07.txt");
 
-fn part1(input: &str) -> usize {
+fn calculate_fuel_usage(
+    crabs: &[usize],
+    pos: usize,
+    fuel_usage_calculator: fn(usize) -> usize,
+) -> usize {
+    crabs
+        .iter()
+        .map(|crab| fuel_usage_calculator((*crab as i64 - pos as i64).abs() as usize))
+        .sum()
+}
+
+fn find_optimal_position(
+    crabs: &[usize],
+    positions: &[usize],
+    fuel_usage_calculator: fn(usize) -> usize,
+) -> usize {
+    if positions.len() == 1 {
+        return calculate_fuel_usage(crabs, positions[0], fuel_usage_calculator);
+    }
+
+    let partition = positions.len() / 2;
+    let left = &positions[..partition];
+    let right = &positions[partition..];
+
+    let l = find_optimal_position(crabs, left, fuel_usage_calculator);
+    let r = find_optimal_position(crabs, right, fuel_usage_calculator);
+
+    l.min(r)
+}
+
+fn run(input: &str, fuel_usage_calculator: fn(usize) -> usize) -> usize {
     let crab_positions: Vec<usize> = input
         .trim()
         .split(',')
@@ -12,58 +40,18 @@ fn part1(input: &str) -> usize {
     let min_pos = *crab_positions.iter().min().unwrap();
     let max_pos = *crab_positions.iter().max().unwrap();
 
-    let mut best = vec![];
+    let possible_positions: Vec<usize> = (min_pos..=max_pos).collect();
 
-    for pos in min_pos..=max_pos {
-        let mut fuel_usage = 0;
+    find_optimal_position(&crab_positions, &possible_positions, fuel_usage_calculator)
+}
 
-        for crab in &crab_positions {
-            fuel_usage += (*crab as i64 - pos as i64).abs() as usize
-        }
-
-        best.push((pos, fuel_usage));
-    }
-
-    *best
-        .iter()
-        .min_by_key(|(_, fuel_usage)| fuel_usage)
-        .map(|(_, fuel_usage)| fuel_usage)
-        .unwrap()
+fn part1(input: &str) -> usize {
+    run(input, |steps| steps)
 }
 
 fn part2(input: &str) -> usize {
-    let crab_positions: Vec<usize> = input
-        .trim()
-        .split(',')
-        .map(|s| s.parse().unwrap())
-        .collect();
-
-    let min_pos = *crab_positions.iter().min().unwrap();
-    let max_pos = *crab_positions.iter().max().unwrap();
-
-    let mut best = vec![];
-
-    for pos in min_pos..=max_pos {
-        let mut fuel_usage = 0;
-
-        for crab in &crab_positions {
-            let steps = (*crab as i64 - pos as i64).abs() as usize;
-
-            for i in 0..=steps {
-                fuel_usage += i;
-            }
-        }
-
-        best.push((pos, fuel_usage));
-    }
-
-    *best
-        .iter()
-        .min_by_key(|(_, fuel_usage)| fuel_usage)
-        .map(|(_, fuel_usage)| fuel_usage)
-        .unwrap()
+    run(input, |steps| (0..=steps).sum())
 }
-
 fn main() {
     dbg!(part1(INPUT));
     dbg!(part2(INPUT));
