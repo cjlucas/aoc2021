@@ -21,13 +21,10 @@ fn find_optimal_fuel_usage(
     }
 
     let partition = positions.len() / 2;
-    let left = &positions[..partition];
-    let right = &positions[partition..];
+    let left = find_optimal_fuel_usage(crabs, &positions[..partition], fuel_usage_calculator);
+    let right = find_optimal_fuel_usage(crabs, &positions[partition..], fuel_usage_calculator);
 
-    let l = find_optimal_fuel_usage(crabs, left, fuel_usage_calculator);
-    let r = find_optimal_fuel_usage(crabs, right, fuel_usage_calculator);
-
-    l.min(r)
+    left.min(right)
 }
 
 fn run(input: &str, fuel_usage_calculator: fn(usize) -> usize) -> usize {
