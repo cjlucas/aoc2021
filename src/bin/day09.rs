@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use aoc2021::prelude::*;
 
 const INPUT: &'static str = include_str!("../../inputs/day09.txt");
@@ -39,23 +37,58 @@ impl HeightMap {
         Some(&self.points[row][col])
     }
 
-    fn height(&self, row: usize, col: usize) -> Option<usize> {
-        self.point(row, col).map(Point::height)
-    }
-
-    fn is_low_point(&self, row: usize, col: usize) -> bool {
-        let height = self.height(row, col).unwrap();
-        let min_adjacent_heights = *self.adjacent_heights(row, col).iter().min().unwrap();
-
-        height < min_adjacent_heights
-    }
-
-    fn adjacent_heights(&self, row: usize, col: usize) -> Vec<usize> {
-        let point = self.point(row, col).unwrap();
-        self.adjacent_points(point)
+    fn is_low_point(&self, point: &Point) -> bool {
+        let min_adjacent_heights = self
+            .adjacent_points(point)
             .into_iter()
             .map(Point::height)
+            .min()
+            .unwrap();
+
+        point.height < min_adjacent_heights
+    }
+
+    fn low_points(&self) -> Vec<&Point> {
+        let mut points = vec![];
+
+        for row in 0..self.num_rows() {
+            for col in 0..self.num_columns() {
+                let point = self.point(row, col).unwrap();
+
+                if self.is_low_point(point) {
+                    points.push(point);
+                }
+            }
+        }
+
+        points
+    }
+
+    fn basins(&self) -> Vec<HashSet<&Point>> {
+        self.low_points()
+            .into_iter()
+            .map(|point| self.basin(point))
             .collect()
+    }
+
+    fn basin<'a>(&'a self, point: &'a Point) -> HashSet<&'a Point> {
+        let adjacent_basin_points: Vec<_> = self
+            .adjacent_points(point)
+            .into_iter()
+            .filter(|p| p.height > point.height && p.height < 9)
+            .collect();
+
+        let mut points = HashSet::new();
+
+        points.insert(point);
+
+        for point in adjacent_basin_points {
+            for p in self.basin(point) {
+                points.insert(p);
+            }
+        }
+
+        points
     }
 
     fn adjacent_points(&self, point: &Point) -> Vec<&Point> {
@@ -97,66 +130,23 @@ impl FromStr for HeightMap {
 fn part1(input: &str) -> usize {
     let map: HeightMap = input.parse().unwrap();
 
-    let mut risk_level = 0;
-    for row in 0..map.num_rows() {
-        for col in 0..map.num_columns() {
-            if map.is_low_point(row, col) {
-                risk_level += map.height(row, col).unwrap() + 1;
-            }
-        }
-    }
-
-    risk_level
-}
-
-fn basin_points<'a>(map: &'a HeightMap, point: &'a Point) -> HashSet<&'a Point> {
-    let adjacent_basin_points: Vec<_> = map
-        .adjacent_points(point)
+    map.low_points()
         .into_iter()
-        .filter(|p| p.height > point.height && p.height < 9)
-        .collect();
-
-    let mut points = HashSet::new();
-
-    points.insert(point);
-
-    for point in adjacent_basin_points {
-        for p in basin_points(map, point) {
-            points.insert(p);
-        }
-    }
-
-    points
+        .map(Point::height)
+        .map(|x| x + 1)
+        .sum()
 }
 
 fn part2(input: &str) -> usize {
     let map: HeightMap = input.parse().unwrap();
 
-    let mut basin_sizes = vec![];
-
-    for row in 0..map.num_rows() {
-        for col in 0..map.num_columns() {
-            if map.is_low_point(row, col) {
-                let point = map.point(row, col).unwrap();
-
-                // dbg!(point);
-                let basin_size: usize = basin_points(&map, point).len();
-
-                // dbg!(basin_size);
-                basin_sizes.push(basin_size);
-            }
-        }
-    }
-
-    let mut answer = 1;
-
-    basin_sizes.sort();
-
-    for n in basin_sizes.iter().rev().take(3) {
-        answer *= n;
-    }
-
-    answer
+    map.basins()
+        .iter()
+        .map(HashSet::len)
+        .sorted()
+        .rev()
+        .take(3)
+        .fold(1, |acc, len| acc * len)
 }
 
 fn main() {
