@@ -1,5 +1,5 @@
 pub mod prelude {
-    pub use std::collections::{HashSet, VecDeque};
+    pub use std::collections::{HashMap, HashSet, VecDeque};
 
     use std::fmt::Debug;
     use std::str::FromStr;
