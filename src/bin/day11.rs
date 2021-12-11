@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use aoc2021::prelude::*;
 
 const INPUT: &'static str = include_str!("../../inputs/day11.txt");
@@ -25,28 +23,6 @@ impl OctopusGrid {
 
     fn reset_energy_level(&mut self, row: usize, col: usize) {
         self.octopus_energy_levels[(row * 10) + col] = 0;
-    }
-
-    fn adjacent_octopuses(&self, row: usize, col: usize) -> Vec<usize> {
-        let mut adjacent = vec![];
-        // N
-        adjacent.push(self.energy_level(row.wrapping_sub(1), col));
-        // NE
-        adjacent.push(self.energy_level(row.wrapping_sub(1), col.wrapping_add(1)));
-        // E
-        adjacent.push(self.energy_level(row, col.wrapping_add(1)));
-        // SE
-        adjacent.push(self.energy_level(row.wrapping_add(1), col.wrapping_add(1)));
-        // S
-        adjacent.push(self.energy_level(row.wrapping_add(1), col));
-        // SW
-        adjacent.push(self.energy_level(row.wrapping_add(1), col.wrapping_sub(1)));
-        // W
-        adjacent.push(self.energy_level(row, col.wrapping_sub(1)));
-        // NW
-        adjacent.push(self.energy_level(row.wrapping_sub(1), col.wrapping_sub(1)));
-
-        adjacent.into_iter().filter_map(|x| x).collect()
     }
 
     fn adjacent_coords(&self, row: usize, col: usize) -> Vec<(usize, usize)> {
@@ -132,10 +108,10 @@ impl std::fmt::Display for OctopusGrid {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for row in 0..10 {
             for col in 0..10 {
-                f.write_str(&self.energy_level(row, col).unwrap().to_string());
+                f.write_str(&self.energy_level(row, col).unwrap().to_string())?;
             }
 
-            f.write_str("\n");
+            f.write_str("\n")?;
         }
 
         Ok(())
@@ -147,10 +123,7 @@ fn part1(input: &str) -> usize {
 
     let mut num_flashes = 0;
 
-    for step in 0..100 {
-        dbg!(step);
-        println!("{}", grid);
-
+    for _ in 0..100 {
         grid.step();
 
         num_flashes += grid.reset_flashes();
@@ -163,9 +136,6 @@ fn part2(input: &str) -> usize {
     let mut grid: OctopusGrid = input.parse().unwrap();
 
     for step in 0.. {
-        dbg!(step);
-        println!("{}", grid);
-
         grid.step();
 
         if grid.reset_flashes() == 100 {
@@ -178,7 +148,7 @@ fn part2(input: &str) -> usize {
 
 fn main() {
     dbg!(part1(INPUT));
-    // dbg!(part2(INPUT));
+    dbg!(part2(INPUT));
 }
 
 #[cfg(test)]
@@ -194,7 +164,7 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(INPUT), 6113);
+        assert_eq!(part1(INPUT), 1640);
     }
 
     #[test]
