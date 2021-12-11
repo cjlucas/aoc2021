@@ -1,46 +1,52 @@
-use aoc2021::prelude::*;
-
 const INPUT: &'static str = include_str!("../../inputs/day10.txt");
 
-fn part1(input: &str) -> usize {
-    let mut syntax_error_score_lut: HashMap<char, usize> = HashMap::new();
-    syntax_error_score_lut.insert(')', 3);
-    syntax_error_score_lut.insert(']', 57);
-    syntax_error_score_lut.insert('}', 1197);
-    syntax_error_score_lut.insert('>', 25137);
+enum SyntaxError {
+    UnexpectedCharacter(char),
+}
 
+fn parse_line(line: &str) -> Result<Vec<char>, SyntaxError> {
+    let mut stack = vec![];
+
+    for c in line.chars() {
+        match c {
+            '(' | '[' | '{' | '<' => stack.push(c),
+            ')' => {
+                if stack.pop() != Some('(') {
+                    return Err(SyntaxError::UnexpectedCharacter(c));
+                }
+            }
+            ']' => {
+                if stack.pop() != Some('[') {
+                    return Err(SyntaxError::UnexpectedCharacter(c));
+                }
+            }
+            '}' => {
+                if stack.pop() != Some('{') {
+                    return Err(SyntaxError::UnexpectedCharacter(c));
+                }
+            }
+            '>' => {
+                if stack.pop() != Some('<') {
+                    return Err(SyntaxError::UnexpectedCharacter(c));
+                }
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    Ok(stack)
+}
+
+fn part1(input: &str) -> usize {
     let mut syntax_error_score = 0;
 
     for line in input.lines() {
-        let mut stack = vec![];
-
-        for c in line.chars() {
+        if let Err(SyntaxError::UnexpectedCharacter(c)) = parse_line(line) {
             match c {
-                '(' | '[' | '{' | '<' => stack.push(c),
-                ')' => {
-                    if stack.pop() != Some('(') {
-                        println!("invalid line: {}", line);
-                        syntax_error_score += syntax_error_score_lut.get(&')').unwrap();
-                    }
-                }
-                ']' => {
-                    if stack.pop() != Some('[') {
-                        println!("invalid line: {}", line);
-                        syntax_error_score += syntax_error_score_lut.get(&']').unwrap();
-                    }
-                }
-                '}' => {
-                    if stack.pop() != Some('{') {
-                        println!("invalid line: {}", line);
-                        syntax_error_score += syntax_error_score_lut.get(&'}').unwrap();
-                    }
-                }
-                '>' => {
-                    if stack.pop() != Some('<') {
-                        println!("invalid line: {}", line);
-                        syntax_error_score += syntax_error_score_lut.get(&'>').unwrap();
-                    }
-                }
+                ')' => syntax_error_score += 3,
+                ']' => syntax_error_score += 57,
+                '}' => syntax_error_score += 1197,
+                '>' => syntax_error_score += 25137,
                 _ => unreachable!(),
             }
         }
@@ -50,97 +56,19 @@ fn part1(input: &str) -> usize {
 }
 
 fn part2(input: &str) -> usize {
-    let mut corrupted_lines = HashSet::new();
-    for line in input.lines() {
-        let mut stack = vec![];
-
-        for c in line.chars() {
-            match c {
-                '(' | '[' | '{' | '<' => stack.push(c),
-                ')' => {
-                    if stack.pop() != Some('(') {
-                        println!("invalid line: {}", line);
-                        corrupted_lines.insert(line);
-                    }
-                }
-                ']' => {
-                    if stack.pop() != Some('[') {
-                        println!("invalid line: {}", line);
-                        corrupted_lines.insert(line);
-                    }
-                }
-                '}' => {
-                    if stack.pop() != Some('{') {
-                        println!("invalid line: {}", line);
-                        corrupted_lines.insert(line);
-                    }
-                }
-                '>' => {
-                    if stack.pop() != Some('<') {
-                        println!("invalid line: {}", line);
-                        corrupted_lines.insert(line);
-                    }
-                }
-                _ => unreachable!(),
-            }
-        }
-    }
-
     let mut autocomplete_scores: Vec<usize> = vec![];
 
-    for line in input.lines() {
-        if corrupted_lines.contains(line) {
-            continue;
-        }
-
-        let mut stack = vec![];
+    let uncorrupted_lines = input.lines().filter_map(|line| parse_line(line).ok());
+    for mut remaining_chars in uncorrupted_lines {
         let mut autocomplete_score = 0;
 
-        for c in line.chars() {
+        while let Some(c) = remaining_chars.pop() {
+            autocomplete_score *= 5;
             match c {
-                '(' | '[' | '{' | '<' => stack.push(c),
-                ')' => {
-                    if stack.pop() != Some('(') {
-                        unreachable!();
-                    }
-                }
-                ']' => {
-                    if stack.pop() != Some('[') {
-                        unreachable!();
-                    }
-                }
-                '}' => {
-                    if stack.pop() != Some('{') {
-                        unreachable!();
-                    }
-                }
-                '>' => {
-                    if stack.pop() != Some('<') {
-                        unreachable!();
-                    }
-                }
-                _ => unreachable!(),
-            }
-        }
-
-        while let Some(c) = stack.pop() {
-            match c {
-                '(' => {
-                    autocomplete_score *= 5;
-                    autocomplete_score += 1;
-                }
-                '[' => {
-                    autocomplete_score *= 5;
-                    autocomplete_score += 2;
-                }
-                '{' => {
-                    autocomplete_score *= 5;
-                    autocomplete_score += 3;
-                }
-                '<' => {
-                    autocomplete_score *= 5;
-                    autocomplete_score += 4;
-                }
+                '(' => autocomplete_score += 1,
+                '[' => autocomplete_score += 2,
+                '{' => autocomplete_score += 3,
+                '<' => autocomplete_score += 4,
                 _ => unreachable!(),
             }
         }
