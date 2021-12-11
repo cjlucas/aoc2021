@@ -1,6 +1,6 @@
 pub mod prelude {
     pub use itertools::Itertools;
-    pub use std::collections::{HashSet, VecDeque};
+    pub use std::collections::{HashMap, HashSet, VecDeque};
     use std::fmt::Debug;
     pub use std::str::FromStr;
 
