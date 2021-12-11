@@ -3,33 +3,31 @@ use aoc2021::prelude::*;
 const INPUT: &'static str = include_str!("../../inputs/day11.txt");
 
 struct OctopusGrid {
-    octopus_energy_levels: [usize; 100],
+    octopi: [Octopus; 100],
 }
 
 impl OctopusGrid {
-    fn energy_level(&self, row: usize, col: usize) -> Option<usize> {
+    fn octopus(&self, row: usize, col: usize) -> Option<&Octopus> {
         if row >= 10 || col >= 10 {
             return None;
         }
 
-        Some(self.octopus_energy_levels[(row * 10) + col])
+        Some(&self.octopi[(row * 10) + col])
     }
 
-    fn incr_energy_level(&mut self, row: usize, col: usize) {
-        let energy_level = self.energy_level(row, col).unwrap();
+    fn octopus_mut(&mut self, row: usize, col: usize) -> Option<&mut Octopus> {
+        if row >= 10 || col >= 10 {
+            return None;
+        }
 
-        self.octopus_energy_levels[(row * 10) + col] = energy_level + 1;
+        Some(&mut self.octopi[(row * 10) + col])
     }
 
-    fn reset_energy_level(&mut self, row: usize, col: usize) {
-        self.octopus_energy_levels[(row * 10) + col] = 0;
-    }
-
-    fn adjacent_coords(&self, row: usize, col: usize) -> Vec<(usize, usize)> {
+    fn adjacent_octopi_coords(&self, row: usize, col: usize) -> Vec<(usize, usize)> {
         vec![
             // N
             (row.wrapping_sub(1), col),
-            //NE
+            // NE
             (row.wrapping_sub(1), col.wrapping_add(1)),
             // E
             (row, col.wrapping_add(1)),
@@ -47,10 +45,9 @@ impl OctopusGrid {
     }
 
     fn simulate_flash(&mut self, row: usize, col: usize) {
-        for (row, col) in self.adjacent_coords(row, col) {
-            if self.energy_level(row, col).is_some() {
-                self.incr_energy_level(row, col);
-                if self.energy_level(row, col).unwrap() == 10 {
+        for (row, col) in self.adjacent_octopi_coords(row, col) {
+            if let Some(octopus) = self.octopus_mut(row, col) {
+                if octopus.incr_energy() {
                     self.simulate_flash(row, col)
                 }
             }
@@ -60,9 +57,9 @@ impl OctopusGrid {
     fn step(&mut self) {
         for row in 0..10 {
             for col in 0..10 {
-                self.incr_energy_level(row, col);
-                if self.energy_level(row, col).unwrap() == 10 {
-                    self.simulate_flash(row, col);
+                let octopus = self.octopus_mut(row, col).unwrap();
+                if octopus.incr_energy() {
+                    self.simulate_flash(row, col)
                 }
             }
         }
@@ -73,8 +70,10 @@ impl OctopusGrid {
 
         for row in 0..10 {
             for col in 0..10 {
-                if self.energy_level(row, col).unwrap() > 9 {
-                    self.reset_energy_level(row, col);
+                let octopus = self.octopus_mut(row, col).unwrap();
+
+                if octopus.has_flashed() {
+                    octopus.reset_energy();
                     num_flashes += 1;
                 }
             }
@@ -88,19 +87,17 @@ impl FromStr for OctopusGrid {
     type Err = std::convert::Infallible;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut octopus_energy_levels = [0usize; 100];
+        let mut octopi = [Octopus::default(); 100];
         let mut idx = 0;
 
         for line in s.lines() {
             for c in line.chars() {
-                octopus_energy_levels[idx] = c.to_digit(10).unwrap() as usize;
+                octopi[idx].energy = c.to_digit(10).unwrap() as usize;
                 idx += 1;
             }
         }
 
-        Ok(Self {
-            octopus_energy_levels,
-        })
+        Ok(Self { octopi })
     }
 }
 
@@ -108,13 +105,34 @@ impl std::fmt::Display for OctopusGrid {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for row in 0..10 {
             for col in 0..10 {
-                f.write_str(&self.energy_level(row, col).unwrap().to_string())?;
+                let octopus = self.octopus(row, col).unwrap();
+                f.write_str(&octopus.energy.to_string())?;
             }
 
             f.write_str("\n")?;
         }
 
         Ok(())
+    }
+}
+
+#[derive(Copy, Clone, Default)]
+struct Octopus {
+    energy: usize,
+}
+
+impl Octopus {
+    fn incr_energy(&mut self) -> bool {
+        self.energy += 1;
+        self.energy == 10
+    }
+
+    fn has_flashed(&self) -> bool {
+        self.energy >= 10
+    }
+
+    fn reset_energy(&mut self) {
+        self.energy = 0;
     }
 }
 
