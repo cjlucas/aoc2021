@@ -68,17 +68,12 @@ impl FromStr for CaveMap {
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 struct Cave {
     name: String,
-    connected_caves: Vec<Cave>,
 }
 
 impl Cave {
     fn new(name: &str) -> Self {
-        let name = name.to_string();
-        let connected_caves = vec![];
-
         Self {
-            name,
-            connected_caves,
+            name: name.to_string(),
         }
     }
 
@@ -96,23 +91,21 @@ impl Cave {
 }
 
 #[derive(Clone, Default)]
-struct CavePath {
-    caves: Vec<Cave>,
-    visits: HashMap<String, usize>,
+struct CavePath<'a> {
+    caves: Vec<&'a Cave>,
+    visits: HashMap<&'a String, usize>,
 }
 
-impl CavePath {
+impl<'a> CavePath<'a> {
     fn new() -> Self {
         Default::default()
     }
 
-    fn add(&mut self, cave: Cave) {
-        let name = cave.name.to_string();
-
-        if let Some(visits) = self.visits.get_mut(&name) {
+    fn add(&mut self, cave: &'a Cave) {
+        if let Some(visits) = self.visits.get_mut(&cave.name) {
             *visits += 1;
         } else {
-            self.visits.insert(name, 1);
+            self.visits.insert(&cave.name, 1);
         }
 
         self.caves.push(cave);
@@ -123,13 +116,13 @@ impl CavePath {
     }
 }
 
-fn build_path2(
+fn build_path2<'a>(
     map: &CaveMap,
-    mut path: CavePath,
-    cave: &Cave,
+    mut path: CavePath<'a>,
+    cave: &'a Cave,
     max_small_cave_vists: usize,
 ) -> usize {
-    path.add(cave.clone());
+    path.add(cave);
 
     if cave.is_end() {
         return 1;
