@@ -2,6 +2,141 @@ use aoc2021::prelude::*;
 
 const INPUT: &'static str = include_str!("../../inputs/day12.txt");
 
+#[derive(Default)]
+struct CaveMap {
+    connected_caves: HashMap<String, HashSet<Cave>>,
+}
+
+impl CaveMap {
+    fn new() -> Self {
+        Default::default()
+    }
+
+    fn count_paths(&self, max_small_cave_vists: usize) -> usize {
+        build_path2(
+            self,
+            CavePath::new(),
+            &Cave::new("start"),
+            max_small_cave_vists,
+        )
+    }
+
+    fn add_connection(&mut self, a: &str, b: &str) {
+        let a = Cave::new(a);
+        let b = Cave::new(b);
+
+        if !self.connected_caves.contains_key(&a.name) {
+            self.connected_caves.insert(a.name.clone(), HashSet::new());
+        }
+
+        if !self.connected_caves.contains_key(&b.name) {
+            self.connected_caves.insert(b.name.clone(), HashSet::new());
+        }
+
+        let caves = self.connected_caves.get_mut(&a.name).unwrap();
+        caves.insert(b.clone());
+
+        let caves = self.connected_caves.get_mut(&b.name).unwrap();
+        caves.insert(a);
+    }
+
+    fn connected_caves(&self, cave: &Cave) -> Vec<&Cave> {
+        self.connected_caves
+            .get(&cave.name)
+            .unwrap()
+            .iter()
+            .collect()
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+struct Cave {
+    name: String,
+    connected_caves: Vec<Cave>,
+}
+
+impl Cave {
+    fn new(name: &str) -> Self {
+        let name = name.to_string();
+        let connected_caves = vec![];
+
+        Self {
+            name,
+            connected_caves,
+        }
+    }
+
+    fn is_start(&self) -> bool {
+        self.name == "start"
+    }
+
+    fn is_end(&self) -> bool {
+        self.name == "end"
+    }
+
+    fn is_small(&self) -> bool {
+        self.name == self.name.to_lowercase() // TODO: memoize
+    }
+}
+
+#[derive(Clone, Default)]
+struct CavePath {
+    caves: Vec<Cave>,
+    visits: HashMap<String, usize>,
+}
+
+impl CavePath {
+    fn new() -> Self {
+        Default::default()
+    }
+
+    fn add(&mut self, cave: Cave) {
+        let name = cave.name.to_string();
+
+        if let Some(visits) = self.visits.get_mut(&name) {
+            *visits += 1;
+        } else {
+            self.visits.insert(name, 1);
+        }
+
+        self.caves.push(cave);
+    }
+
+    fn path(&self) -> Vec<&Cave> {
+        self.caves.iter().collect()
+    }
+
+    fn cave_visits(&self, cave: &Cave) -> usize {
+        *self.visits.get(&cave.name).unwrap_or(&0)
+    }
+
+    fn visited_cave(&self, cave: &Cave) -> bool {
+        self.cave_visits(cave) > 0
+    }
+}
+
+fn build_path2(map: &CaveMap, mut path: CavePath, cave: &Cave, max_small_node: usize) -> usize {
+    path.add(cave.clone());
+
+    if cave.is_end() {
+        return 1;
+    }
+
+    let mut num_paths = 0;
+
+    for connected_cave in map.connected_caves(&cave) {
+        if connected_cave.is_start()
+            || (connected_cave.is_small() && path.visited_cave(&connected_cave))
+        {
+            continue;
+        }
+
+        num_paths += build_path2(map, path.clone(), connected_cave, max_small_node);
+    }
+
+    num_paths
+}
+
 fn build_path(
     paths: &HashMap<&str, HashSet<&str>>,
     mut memo: HashMap<String, usize>,
@@ -51,27 +186,15 @@ fn build_path(
 }
 
 fn part1(input: &str) -> usize {
-    let mut paths: HashMap<&str, HashSet<&str>> = HashMap::new();
+    let mut map = CaveMap::new();
 
     for line in input.lines() {
         for (src, dest) in line.split_once('-') {
-            if !paths.contains_key(src) {
-                paths.insert(src, HashSet::new());
-            }
-
-            let dests = paths.get_mut(&src).unwrap();
-            dests.insert(dest);
-
-            if !paths.contains_key(dest) {
-                paths.insert(dest, HashSet::new());
-            }
-
-            let srcs = paths.get_mut(&dest).unwrap();
-            srcs.insert(src);
+            map.add_connection(src, dest);
         }
     }
 
-    build_path(&paths, HashMap::new(), vec![], "start", 1)
+    map.count_paths(1)
 }
 
 fn part2(input: &str) -> usize {
