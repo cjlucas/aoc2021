@@ -8,7 +8,7 @@ fn build_path(
     mut path: Vec<String>,
     next_node: &str,
     max_small_node: usize,
-) {
+) -> usize {
     path.push(next_node.to_string());
 
     if memo.contains_key(next_node) {
@@ -20,9 +20,11 @@ fn build_path(
 
     if next_node == "end" {
         let path = path.join(",");
-        println!("{}", path);
-        return;
+        // println!("{}", path);
+        return 1;
     }
+
+    let mut num_paths = 0;
 
     for node in paths.get(next_node).unwrap() {
         if node == &"start" {
@@ -42,8 +44,10 @@ fn build_path(
         }
 
         // println!("hereee");
-        build_path(paths, memo.clone(), path.clone(), node, max_small_node);
+        num_paths += build_path(paths, memo.clone(), path.clone(), node, max_small_node);
     }
+
+    num_paths
 }
 
 fn part1(input: &str) -> usize {
@@ -67,9 +71,7 @@ fn part1(input: &str) -> usize {
         }
     }
 
-    build_path(&paths, HashMap::new(), vec![], "start", 1);
-
-    todo!()
+    build_path(&paths, HashMap::new(), vec![], "start", 1)
 }
 
 fn part2(input: &str) -> usize {
@@ -93,9 +95,7 @@ fn part2(input: &str) -> usize {
         }
     }
 
-    build_path(&paths, HashMap::new(), vec![], "start", 2);
-
-    todo!()
+    build_path(&paths, HashMap::new(), vec![], "start", 2)
 }
 
 fn main() {
@@ -107,20 +107,7 @@ fn main() {
 mod tests {
     use super::*;
 
-    const SMALL_SAMPLE_INPUT: &str = "start-A
-start-b
-A-c
-A-b
-b-d
-A-end
-b-end";
-
     const SAMPLE_INPUT: &'static str = include_str!("../../inputs/day12_sample.txt");
-
-    #[test]
-    fn test_part1_small_sample() {
-        assert_eq!(part1(SMALL_SAMPLE_INPUT), 10);
-    }
 
     #[test]
     fn test_part1_sample() {
@@ -129,21 +116,16 @@ b-end";
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(INPUT), 0);
-    }
-
-    #[test]
-    fn test_part2_small_sample() {
-        assert_eq!(part2(SMALL_SAMPLE_INPUT), 36);
+        assert_eq!(part1(INPUT), 3497);
     }
 
     #[test]
     fn test_part2_sample() {
-        assert_eq!(part2(SAMPLE_INPUT), 36);
+        assert_eq!(part2(SAMPLE_INPUT), 3509);
     }
 
-    // #[test]
-    // fn test_part2() {
-    //     assert_eq!(part2(INPUT), 3260812321);
-    // }
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(INPUT), 93686);
+    }
 }
