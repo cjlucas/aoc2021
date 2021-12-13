@@ -106,16 +106,21 @@ impl CavePath {
         self.caves.iter().collect()
     }
 
-    fn cave_visits(&self, cave: &Cave) -> usize {
+    fn num_vists(&self, cave: &Cave) -> usize {
         *self.visits.get(&cave.name).unwrap_or(&0)
     }
 
     fn visited_cave(&self, cave: &Cave) -> bool {
-        self.cave_visits(cave) > 0
+        self.num_vists(cave) > 0
     }
 }
 
-fn build_path2(map: &CaveMap, mut path: CavePath, cave: &Cave, max_small_node: usize) -> usize {
+fn build_path2(
+    map: &CaveMap,
+    mut path: CavePath,
+    cave: &Cave,
+    max_small_cave_vists: usize,
+) -> usize {
     path.add(cave.clone());
 
     if cave.is_end() {
@@ -125,13 +130,17 @@ fn build_path2(map: &CaveMap, mut path: CavePath, cave: &Cave, max_small_node: u
     let mut num_paths = 0;
 
     for connected_cave in map.connected_caves(&cave) {
-        if connected_cave.is_start()
-            || (connected_cave.is_small() && path.visited_cave(&connected_cave))
-        {
+        if connected_cave.is_start() {
             continue;
         }
 
-        num_paths += build_path2(map, path.clone(), connected_cave, max_small_node);
+        let num_vists = path.num_vists(connected_cave);
+
+        if connected_cave.is_small() && num_vists >= max_small_cave_vists {
+            continue;
+        }
+
+        num_paths += build_path2(map, path.clone(), connected_cave, max_small_cave_vists);
     }
 
     num_paths
