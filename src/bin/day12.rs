@@ -49,6 +49,22 @@ impl CaveMap {
     }
 }
 
+impl FromStr for CaveMap {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut map = Self::new();
+
+        for line in s.lines() {
+            for (src, dest) in line.split_once('-') {
+                map.add_connection(src, dest);
+            }
+        }
+
+        Ok(map)
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 struct Cave {
     name: String,
@@ -102,16 +118,8 @@ impl CavePath {
         self.caves.push(cave);
     }
 
-    fn path(&self) -> Vec<&Cave> {
-        self.caves.iter().collect()
-    }
-
     fn num_vists(&self, cave: &Cave) -> usize {
         *self.visits.get(&cave.name).unwrap_or(&0)
-    }
-
-    fn visited_cave(&self, cave: &Cave) -> bool {
-        self.num_vists(cave) > 0
     }
 }
 
@@ -134,10 +142,22 @@ fn build_path2(
             continue;
         }
 
-        let num_vists = path.num_vists(connected_cave);
+        if connected_cave.is_small() {
+            let num_vists = path.num_vists(connected_cave);
 
-        if connected_cave.is_small() && num_vists >= max_small_cave_vists {
-            continue;
+            if num_vists == max_small_cave_vists {
+                continue;
+            }
+
+            if num_vists == 1
+                && path
+                    .caves
+                    .iter()
+                    .filter(|c| c.is_small())
+                    .any(|c| path.num_vists(c) == max_small_cave_vists)
+            {
+                continue;
+            }
         }
 
         num_paths += build_path2(map, path.clone(), connected_cave, max_small_cave_vists);
@@ -146,92 +166,18 @@ fn build_path2(
     num_paths
 }
 
-fn build_path(
-    paths: &HashMap<&str, HashSet<&str>>,
-    mut memo: HashMap<String, usize>,
-    mut path: Vec<String>,
-    next_node: &str,
-    max_small_node: usize,
-) -> usize {
-    path.push(next_node.to_string());
-
-    if memo.contains_key(next_node) {
-        *memo.get_mut(next_node).unwrap() += 1;
-        // dbg!(memo.get(next_node));
-    } else {
-        memo.insert(next_node.to_string(), 1);
-    }
-
-    if next_node == "end" {
-        let path = path.join(",");
-        // println!("{}", path);
-        return 1;
-    }
-
-    let mut num_paths = 0;
-
-    for node in paths.get(next_node).unwrap() {
-        if node == &"start" {
-            continue;
-        }
-
-        if node.to_string() == node.to_lowercase()
-            && (memo.get(&node.to_string()) == Some(&1)
-                && path
-                    .iter()
-                    .filter(|n| **n == n.to_lowercase())
-                    .map(|n| path.iter().filter(|x| *x == n).count() == max_small_node)
-                    .any(|x| x)
-                || memo.get(&node.to_string()) == Some(&2))
-        {
-            continue;
-        }
-
-        // println!("hereee");
-        num_paths += build_path(paths, memo.clone(), path.clone(), node, max_small_node);
-    }
-
-    num_paths
-}
-
 fn part1(input: &str) -> usize {
-    let mut map = CaveMap::new();
-
-    for line in input.lines() {
-        for (src, dest) in line.split_once('-') {
-            map.add_connection(src, dest);
-        }
-    }
-
+    let map: CaveMap = input.parse().unwrap();
     map.count_paths(1)
 }
 
 fn part2(input: &str) -> usize {
-    let mut paths: HashMap<&str, HashSet<&str>> = HashMap::new();
-
-    for line in input.lines() {
-        for (src, dest) in line.split_once('-') {
-            if !paths.contains_key(src) {
-                paths.insert(src, HashSet::new());
-            }
-
-            let dests = paths.get_mut(&src).unwrap();
-            dests.insert(dest);
-
-            if !paths.contains_key(dest) {
-                paths.insert(dest, HashSet::new());
-            }
-
-            let srcs = paths.get_mut(&dest).unwrap();
-            srcs.insert(src);
-        }
-    }
-
-    build_path(&paths, HashMap::new(), vec![], "start", 2)
+    let map: CaveMap = input.parse().unwrap();
+    map.count_paths(2)
 }
 
 fn main() {
-    // dbg!(part1(INPUT));
+    dbg!(part1(INPUT));
     dbg!(part2(INPUT));
 }
 
