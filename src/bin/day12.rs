@@ -13,12 +13,50 @@ impl CaveMap {
     }
 
     fn count_paths(&self, max_small_cave_vists: usize) -> usize {
-        build_path2(
-            self,
-            CavePath::new(),
-            &Cave::new("start"),
-            max_small_cave_vists,
-        )
+        self.build_path(CavePath::new(), &Cave::new("start"), max_small_cave_vists)
+    }
+
+    fn build_path<'a>(
+        &self,
+        mut path: CavePath<'a>,
+        cave: &'a Cave,
+        max_small_cave_vists: usize,
+    ) -> usize {
+        path.add(cave);
+
+        if cave.is_end() {
+            return 1;
+        }
+
+        let mut num_paths = 0;
+
+        for connected_cave in self.connected_caves(&cave) {
+            if connected_cave.is_start() {
+                continue;
+            }
+
+            if connected_cave.is_small() {
+                let num_vists = path.num_vists(connected_cave);
+
+                if num_vists == max_small_cave_vists {
+                    continue;
+                }
+
+                if num_vists == 1
+                    && path
+                        .caves
+                        .iter()
+                        .filter(|c| c.is_small())
+                        .any(|c| path.num_vists(c) == max_small_cave_vists)
+                {
+                    continue;
+                }
+            }
+
+            num_paths += self.build_path(path.clone(), connected_cave, max_small_cave_vists);
+        }
+
+        num_paths
     }
 
     fn add_connection(&mut self, a: &str, b: &str) {
@@ -114,49 +152,6 @@ impl<'a> CavePath<'a> {
     fn num_vists(&self, cave: &Cave) -> usize {
         *self.visits.get(&cave.name).unwrap_or(&0)
     }
-}
-
-fn build_path2<'a>(
-    map: &CaveMap,
-    mut path: CavePath<'a>,
-    cave: &'a Cave,
-    max_small_cave_vists: usize,
-) -> usize {
-    path.add(cave);
-
-    if cave.is_end() {
-        return 1;
-    }
-
-    let mut num_paths = 0;
-
-    for connected_cave in map.connected_caves(&cave) {
-        if connected_cave.is_start() {
-            continue;
-        }
-
-        if connected_cave.is_small() {
-            let num_vists = path.num_vists(connected_cave);
-
-            if num_vists == max_small_cave_vists {
-                continue;
-            }
-
-            if num_vists == 1
-                && path
-                    .caves
-                    .iter()
-                    .filter(|c| c.is_small())
-                    .any(|c| path.num_vists(c) == max_small_cave_vists)
-            {
-                continue;
-            }
-        }
-
-        num_paths += build_path2(map, path.clone(), connected_cave, max_small_cave_vists);
-    }
-
-    num_paths
 }
 
 fn part1(input: &str) -> usize {
