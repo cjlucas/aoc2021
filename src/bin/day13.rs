@@ -36,7 +36,7 @@ impl TransparentPaper {
         for point in below {
             self.points.insert(Point {
                 y: point.y,
-                x: dbg!(fold_pos) - (dbg!(point.x) - fold_pos),
+                x: fold_pos - (point.x - fold_pos),
             });
         }
 
@@ -56,7 +56,7 @@ impl TransparentPaper {
         for point in below {
             self.points.insert(Point {
                 x: point.x,
-                y: dbg!(fold_pos) - (dbg!(point.y) - fold_pos),
+                y: fold_pos - (point.y - fold_pos),
             });
         }
 
@@ -114,12 +114,16 @@ impl FromStr for Point {
     }
 }
 
-fn part1(input: &str) -> usize {
-    let mut split = input.split("\n\n");
-    let mut paper: TransparentPaper = split.next().unwrap().parse().unwrap();
+enum FoldInstruction {
+    Up(usize),
+    Left(usize),
+}
 
-    for fold_instruction in split.next().unwrap().lines().take(1) {
-        let (axis, pos) = fold_instruction
+impl FromStr for FoldInstruction {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (axis, pos) = s
             .split_whitespace()
             .last()
             .unwrap()
@@ -128,42 +132,58 @@ fn part1(input: &str) -> usize {
 
         let pos: usize = pos.parse().unwrap();
 
-        if axis == "x" {
-            paper.fold_x(pos)
+        let inst = if axis == "x" {
+            FoldInstruction::Left(pos)
         } else {
-            paper.fold_y(pos)
+            FoldInstruction::Up(pos)
+        };
+
+        Ok(inst)
+    }
+}
+
+fn process_fold_instructions(
+    paper: &mut TransparentPaper,
+    fold_instructions: Vec<FoldInstruction>,
+) {
+    for fold_instruction in fold_instructions {
+        match fold_instruction {
+            FoldInstruction::Up(pos) => paper.fold_y(pos),
+            FoldInstruction::Left(pos) => paper.fold_x(pos),
         }
     }
+}
+
+fn part1(input: &str) -> usize {
+    let (paper, fold_instructions) = input.split_once("\n\n").unwrap();
+    let mut paper: TransparentPaper = paper.parse().unwrap();
+    let fold_instructions: Vec<_> = fold_instructions
+        .lines()
+        .map(|line| line.parse().unwrap())
+        .take(1)
+        .collect();
+
+    process_fold_instructions(&mut paper, fold_instructions);
 
     paper.points.len()
 }
 
 fn part2(input: &str) -> String {
-    let mut split = input.split("\n\n");
-    let mut paper: TransparentPaper = split.next().unwrap().parse().unwrap();
+    let (paper, fold_instructions) = input.split_once("\n\n").unwrap();
+    let mut paper: TransparentPaper = paper.parse().unwrap();
+    let fold_instructions: Vec<_> = fold_instructions
+        .lines()
+        .map(|line| line.parse().unwrap())
+        .collect();
 
-    for fold_instruction in split.next().unwrap().lines() {
-        let (axis, pos) = fold_instruction
-            .split_whitespace()
-            .last()
-            .unwrap()
-            .split_once('=')
-            .unwrap();
-
-        let pos: usize = pos.parse().unwrap();
-
-        if axis == "x" {
-            paper.fold_x(pos)
-        } else {
-            paper.fold_y(pos)
-        }
-    }
+    process_fold_instructions(&mut paper, fold_instructions);
 
     paper.to_string()
 }
 
 fn main() {
-    dbg!(part1(INPUT));
+    println!("part1: {}", part1(INPUT));
+    println!("part2:");
     println!("{}", part2(INPUT));
 }
 
