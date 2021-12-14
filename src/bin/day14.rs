@@ -44,7 +44,75 @@ fn part1(input: &str) -> usize {
 }
 
 fn part2(input: &str) -> usize {
-    todo!()
+    let (template, rules) = input.split_once("\n\n").unwrap();
+
+    let template: Vec<_> = template.chars().collect();
+    let mut window_freq: HashMap<[char; 2], usize> = template
+        .windows(2)
+        .map(|window| window.try_into().unwrap())
+        .counts();
+    let rules: HashMap<[char; 2], char> = rules
+        .lines()
+        .map(|line| {
+            let (from, to) = line.split_once(" -> ").unwrap();
+
+            let from = from.chars().take(2).collect::<Vec<_>>().try_into().unwrap();
+            let to = to.chars().nth(0).unwrap();
+
+            (from, to)
+        })
+        .collect();
+
+    for step in 0..1 {
+        let mut insertions: Vec<[char; 2]> = vec![];
+        let mut deletions: Vec<[char; 2]> = vec![];
+
+        for (window, &freq) in window_freq.iter() {
+            if freq == 0 {
+                continue;
+            }
+
+            let window: [char; 2] = (*window).try_into().unwrap();
+
+            if let Some(ch) = rules.get(&window) {
+                let mut first = window.clone();
+                first[1] = *ch;
+                let mut second = window.clone();
+                second[0] = *ch;
+
+                for _ in 0..freq {
+                    insertions.push(first);
+                    insertions.push(second);
+
+                    deletions.push(window);
+                }
+
+                // insertions.push_front((idx + 1, *ch));
+            }
+        }
+
+        for window in insertions {
+            if let Some(freq) = window_freq.get_mut(window.as_slice()) {
+                *freq += 1;
+            } else {
+                window_freq.insert(window, 1);
+            }
+        }
+
+        dbg!(step);
+
+        for window in deletions {
+            *window_freq.get_mut(window.as_slice()).unwrap() -= 1;
+        }
+    }
+
+    // let counts: Vec<usize> = template.chars().counts().values().cloned().collect();
+    // let max = *counts.iter().max().unwrap();
+    // let min = *counts.iter().min().unwrap();
+
+    // max - min
+
+    0
 }
 
 fn main() {
@@ -65,13 +133,13 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(INPUT), 240123);
+        assert_eq!(part1(INPUT), 2360);
     }
 
-    // #[test]
-    // fn test_part2_sample() {
-    //     assert_eq!(part2(SAMPLE_INPUT), 288957);
-    // }
+    #[test]
+    fn test_part2_sample() {
+        assert_eq!(part2(SAMPLE_INPUT), 2188189693529);
+    }
 
     // #[test]
     // fn test_part2() {
