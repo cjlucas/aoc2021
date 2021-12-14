@@ -23,40 +23,34 @@ impl TransparentPaper {
         self.points.insert(point);
     }
 
-    fn fold_x(&mut self, x: usize) {
-        let fold_pos = x;
-
+    fn fold_left(&mut self, pos: usize) {
         let points = std::mem::take(&mut self.points);
 
-        let (above, below): (Vec<_>, Vec<_>) =
-            points.into_iter().partition(|point| point.x < fold_pos);
+        let (above, below): (Vec<_>, Vec<_>) = points.into_iter().partition(|point| point.x < pos);
 
         self.points = above.into_iter().collect();
 
         for point in below {
             self.points.insert(Point {
                 y: point.y,
-                x: fold_pos - (point.x - fold_pos),
+                x: pos - (point.x - pos),
             });
         }
 
         self.max_x = self.points.iter().map(|point| point.x).max().unwrap();
     }
 
-    fn fold_y(&mut self, y: usize) {
-        let fold_pos = y;
-
+    fn fold_up(&mut self, pos: usize) {
         let points = std::mem::take(&mut self.points);
 
-        let (above, below): (Vec<_>, Vec<_>) =
-            points.into_iter().partition(|point| point.y < fold_pos);
+        let (above, below): (Vec<_>, Vec<_>) = points.into_iter().partition(|point| point.y < pos);
 
         self.points = above.into_iter().collect();
 
         for point in below {
             self.points.insert(Point {
                 x: point.x,
-                y: fold_pos - (point.y - fold_pos),
+                y: pos - (point.y - pos),
             });
         }
 
@@ -148,8 +142,8 @@ fn process_fold_instructions(
 ) {
     for fold_instruction in fold_instructions {
         match fold_instruction {
-            FoldInstruction::Up(pos) => paper.fold_y(pos),
-            FoldInstruction::Left(pos) => paper.fold_x(pos),
+            FoldInstruction::Up(pos) => paper.fold_up(pos),
+            FoldInstruction::Left(pos) => paper.fold_left(pos),
         }
     }
 }
