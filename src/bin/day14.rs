@@ -24,10 +24,6 @@ fn doit(input: &str, steps: usize) -> usize {
 
     let mut char_freq: HashMap<char, usize> = template.into_iter().counts();
 
-    // for (k, v) in &mut char_freq {
-    //     *v += 1;
-    // }
-
     for _ in 0..steps {
         let mut insertions: HashMap<[char; 2], usize> = HashMap::new();
         let mut deletions: HashMap<[char; 2], usize> = HashMap::new();
@@ -49,6 +45,7 @@ fn doit(input: &str, steps: usize) -> usize {
                 *insertions.entry(second).or_default() += freq;
 
                 *deletions.entry(window).or_default() += freq;
+                *char_freq.entry(*ch).or_default() += freq;
 
                 // insertions.push_front((idx + 1, *ch));
             }
@@ -60,22 +57,29 @@ fn doit(input: &str, steps: usize) -> usize {
             } else {
                 window_freq.insert(window, num_insertions);
             }
+
+            // let ch = rules.get(window.as_slice()).unwrap();
+            // *char_freq.entry(*ch).or_default() += num_insertions;
         }
 
         for (window, num_deletions) in deletions {
             *window_freq.get_mut(window.as_slice()).unwrap() -= num_deletions;
+
+            // for c in window {
+            //     *char_freq.get_mut(&c).unwrap() -= num_deletions;
+            // }
         }
     }
 
-    for (window, freq) in window_freq {
-        for ch in window {
-            if let Some(ch_freq) = char_freq.get_mut(&ch) {
-                *ch_freq += freq;
-            } else {
-                char_freq.insert(ch, freq);
-            }
-        }
-    }
+    // for (window, freq) in window_freq {
+    //     for ch in window {
+    //         if let Some(ch_freq) = char_freq.get_mut(&ch) {
+    //             *ch_freq += freq;
+    //         } else {
+    //             char_freq.insert(ch, freq);
+    //         }
+    //     }
+    // }
 
     let max = *char_freq.values().max().unwrap();
     let min = *char_freq.values().min().unwrap();
@@ -86,7 +90,7 @@ fn doit(input: &str, steps: usize) -> usize {
         println!("{}: {}", ch, freq / 2);
     }
 
-    (max - min) / 2
+    max - min
 }
 
 fn part1(input: &str) -> usize {
@@ -125,6 +129,6 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(INPUT), 3260812321);
+        assert_eq!(part2(INPUT), 2967977072188);
     }
 }
