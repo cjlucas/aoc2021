@@ -2,14 +2,10 @@ use aoc2021::prelude::*;
 
 const INPUT: &'static str = include_str!("../../inputs/day14.txt");
 
-fn doit(input: &str, steps: usize) -> usize {
+fn generate_polymer(input: &str, steps: usize) -> usize {
     let (template, rules) = input.split_once("\n\n").unwrap();
 
     let template: Vec<_> = template.chars().collect();
-    let mut window_freq: HashMap<[char; 2], usize> = template
-        .windows(2)
-        .map(|window| window.try_into().unwrap())
-        .counts();
     let rules: HashMap<[char; 2], char> = rules
         .lines()
         .map(|line| {
@@ -22,6 +18,11 @@ fn doit(input: &str, steps: usize) -> usize {
         })
         .collect();
 
+    let mut window_freq: HashMap<[char; 2], usize> = template
+        .windows(2)
+        .map(|window| window.try_into().unwrap())
+        .counts();
+
     let mut char_freq: HashMap<char, usize> = template.into_iter().counts();
 
     for _ in 0..steps {
@@ -29,10 +30,6 @@ fn doit(input: &str, steps: usize) -> usize {
         let mut deletions: HashMap<[char; 2], usize> = HashMap::new();
 
         for (window, &freq) in window_freq.iter() {
-            if freq == 0 {
-                continue;
-            }
-
             let window: [char; 2] = (*window).try_into().unwrap();
 
             if let Some(ch) = rules.get(&window) {
@@ -43,62 +40,32 @@ fn doit(input: &str, steps: usize) -> usize {
 
                 *insertions.entry(first).or_default() += freq;
                 *insertions.entry(second).or_default() += freq;
-
                 *deletions.entry(window).or_default() += freq;
-                *char_freq.entry(*ch).or_default() += freq;
 
-                // insertions.push_front((idx + 1, *ch));
+                *char_freq.entry(*ch).or_default() += freq;
             }
         }
 
         for (window, num_insertions) in insertions {
-            if let Some(freq) = window_freq.get_mut(window.as_slice()) {
-                *freq += num_insertions;
-            } else {
-                window_freq.insert(window, num_insertions);
-            }
-
-            // let ch = rules.get(window.as_slice()).unwrap();
-            // *char_freq.entry(*ch).or_default() += num_insertions;
+            *window_freq.entry(window).or_default() += num_insertions;
         }
 
         for (window, num_deletions) in deletions {
             *window_freq.get_mut(window.as_slice()).unwrap() -= num_deletions;
-
-            // for c in window {
-            //     *char_freq.get_mut(&c).unwrap() -= num_deletions;
-            // }
         }
     }
 
-    // for (window, freq) in window_freq {
-    //     for ch in window {
-    //         if let Some(ch_freq) = char_freq.get_mut(&ch) {
-    //             *ch_freq += freq;
-    //         } else {
-    //             char_freq.insert(ch, freq);
-    //         }
-    //     }
-    // }
-
-    let max = *char_freq.values().max().unwrap();
-    let min = *char_freq.values().min().unwrap();
-
-    dbg!(&char_freq);
-
-    for (ch, freq) in char_freq {
-        println!("{}: {}", ch, freq / 2);
-    }
+    let (min, max) = char_freq.values().minmax().into_option().unwrap();
 
     max - min
 }
 
 fn part1(input: &str) -> usize {
-    doit(input, 10)
+    generate_polymer(input, 10)
 }
 
 fn part2(input: &str) -> usize {
-    doit(input, 40)
+    generate_polymer(input, 40)
 }
 
 fn main() {
