@@ -23,6 +23,15 @@ impl TransparentPaper {
         self.points.insert(point);
     }
 
+    fn fold(&mut self, fold_instructions: Vec<FoldInstruction>) {
+        for fold_instruction in fold_instructions {
+            match fold_instruction {
+                FoldInstruction::Up(pos) => self.fold_up(pos),
+                FoldInstruction::Left(pos) => self.fold_left(pos),
+            }
+        }
+    }
+
     fn fold_left(&mut self, pos: usize) {
         let points = std::mem::take(&mut self.points);
 
@@ -124,27 +133,15 @@ impl FromStr for FoldInstruction {
             .split_once('=')
             .unwrap();
 
-        let pos: usize = pos.parse().unwrap();
+        let pos = pos.parse().unwrap();
 
-        let inst = if axis == "x" {
-            FoldInstruction::Left(pos)
-        } else {
-            FoldInstruction::Up(pos)
+        let inst = match axis {
+            "x" => FoldInstruction::Left(pos),
+            "y" => FoldInstruction::Up(pos),
+            _ => unreachable!(),
         };
 
         Ok(inst)
-    }
-}
-
-fn process_fold_instructions(
-    paper: &mut TransparentPaper,
-    fold_instructions: Vec<FoldInstruction>,
-) {
-    for fold_instruction in fold_instructions {
-        match fold_instruction {
-            FoldInstruction::Up(pos) => paper.fold_up(pos),
-            FoldInstruction::Left(pos) => paper.fold_left(pos),
-        }
     }
 }
 
@@ -157,7 +154,7 @@ fn part1(input: &str) -> usize {
         .take(1)
         .collect();
 
-    process_fold_instructions(&mut paper, fold_instructions);
+    paper.fold(fold_instructions);
 
     paper.points.len()
 }
@@ -170,7 +167,7 @@ fn part2(input: &str) -> String {
         .map(|line| line.parse().unwrap())
         .collect();
 
-    process_fold_instructions(&mut paper, fold_instructions);
+    paper.fold(fold_instructions);
 
     paper.to_string()
 }
