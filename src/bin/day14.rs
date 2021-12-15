@@ -29,8 +29,8 @@ fn generate_polymer(input: &str, steps: usize) -> usize {
         let mut insertions: HashMap<[char; 2], usize> = HashMap::new();
         let mut deletions: HashMap<[char; 2], usize> = HashMap::new();
 
-        for (window, &freq) in window_freq.iter() {
-            let window: [char; 2] = (*window).try_into().unwrap();
+        for (&window, &freq) in window_freq.iter() {
+            let window: [char; 2] = window.try_into().unwrap();
 
             if let Some(ch) = rules.get(&window) {
                 let mut first = window.clone();
