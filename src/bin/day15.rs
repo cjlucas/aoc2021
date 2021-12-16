@@ -5,6 +5,9 @@ struct Grid {
 }
 
 impl Grid {
+    fn new(points: HashMap<Point, u64>) -> Self {
+        Self { points }
+    }
     fn width(&self) -> usize {
         self.points.keys().max_by_key(|point| point.x).unwrap().x + 1
     }
@@ -123,13 +126,88 @@ fn part1(input: &str) -> u64 {
     *distance.get(&(end.x, end.y)).unwrap()
 }
 
-// fn part2(input: &str) -> String {
-//     todo!()
-// }
+fn part2(input: &str) -> u64 {
+    let grid: Grid = input.parse().unwrap();
+    let mut points: HashMap<Point, u64> = HashMap::new();
+
+    for grid_x in 0..5 {
+        for grid_y in 0..5 {
+            for (y, line) in input.lines().enumerate() {
+                for (x, digit) in line.chars().enumerate() {
+                    dbg!(grid_x);
+                    dbg!(grid_y);
+                    dbg!(y);
+                    dbg!(x);
+
+                    let digit = digit.to_digit(10).unwrap() as u64;
+                    let mut adjusted_digit = (digit + grid_x + grid_y) % 10;
+                    if adjusted_digit < digit {
+                        adjusted_digit += 1;
+                    }
+
+                    let adjusted_x = (grid_x as usize * grid.width()) + x;
+                    let adjusted_y = (grid_y as usize * grid.height()) + y;
+                    let point = Point {
+                        x: adjusted_x,
+                        y: adjusted_y,
+                    };
+                    points.insert(point, adjusted_digit);
+                }
+            }
+        }
+    }
+
+    let grid = Grid::new(points);
+
+    let mut distance: HashMap<(usize, usize), u64> = HashMap::new();
+
+    let mut points = HashSet::new();
+
+    for x in 0..grid.width() {
+        for y in 0..grid.height() {
+            let pos = (x, y);
+            let dist = if pos == (0, 0) { 0 } else { u64::MAX };
+            distance.insert(pos, dist);
+            points.insert(Point { x, y });
+        }
+    }
+
+    while !points.is_empty() {
+        let point = points
+            .iter()
+            .cloned()
+            .min_by_key(|point| distance.get(&(point.x, point.y)).unwrap())
+            .unwrap();
+
+        points.remove(&point);
+
+        for neighbor in grid.neighbors(&point) {
+            if !points.contains(&neighbor) {
+                continue;
+            }
+
+            let dist = *distance.get(&(point.x, point.y)).unwrap();
+            let alt = dist + grid.risk_level(&neighbor);
+
+            if alt < *distance.get(&(neighbor.x, neighbor.y)).unwrap() {
+                distance.insert((neighbor.x, neighbor.y), alt);
+            }
+        }
+
+        dbg!(points.len());
+    }
+
+    let end = Point {
+        x: grid.width() - 1,
+        y: grid.height() - 1,
+    };
+
+    *distance.get(&(end.x, end.y)).unwrap()
+}
 
 fn main() {
-    println!("part1: {}", part1(INPUT));
-    // println!("part2: {}", part2(INPUT));
+    // println!("part1: {}", part1(INPUT));
+    println!("part2: {}", part2(INPUT));
 }
 
 #[cfg(test)]
@@ -148,9 +226,13 @@ mod tests {
         assert_eq!(part1(INPUT), 581);
     }
 
+    #[test]
+    fn test_part2_sample() {
+        assert_eq!(part2(SAMPLE_INPUT), 315);
+    }
+
     // #[test]
     // fn test_part2() {
-    //     let expected = include_str!("../../outputs/day13_part2.txt");
     //     assert_eq!(part2(INPUT), expected);
     // }
 }
