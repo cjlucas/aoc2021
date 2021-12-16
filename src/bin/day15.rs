@@ -206,7 +206,7 @@ fn part2(input: &str) -> u64 {
 }
 
 fn main() {
-    // println!("part1: {}", part1(INPUT));
+    println!("part1: {}", part1(INPUT));
     println!("part2: {}", part2(INPUT));
 }
 
@@ -233,6 +233,6 @@ mod tests {
 
     // #[test]
     // fn test_part2() {
-    //     assert_eq!(part2(INPUT), expected);
+    //     assert_eq!(part2(INPUT), 2916);
     // }
 }
