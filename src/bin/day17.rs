@@ -1,5 +1,7 @@
 use aoc2021::prelude::*;
 
+const AREA: TargetArea = TargetArea::new(240, 292, -90, -57);
+
 struct TargetArea {
     min_x: i64,
     min_y: i64,
@@ -79,36 +81,27 @@ impl Probe {
 // y value is too large, therefore the max y value is y - 1.
 
 fn part1(area: &TargetArea) -> i64 {
-    let mut initial_velocity = (0, 0);
-    let mut prev_initial_velocity = (0, 0);
+    let mut optimal_initial_velocity = (0, 0);
 
-    loop {
-        dbg!(initial_velocity);
-        prev_initial_velocity = initial_velocity;
-        let mut probe = Probe::new(initial_velocity);
-        let mut prev_pos = probe.pos;
+    for y in 0..100 {
+        for x in 0..100 {
+            let mut probe = Probe::new((x, y));
 
-        // continue stepping while we have a chance to hit the target
-        while !(area.below_target(probe.pos) || area.overshot_target(probe.pos)) {
-            println!("before step: ({}, {})", probe.pos.0, probe.pos.1);
+            while !area.below_target(probe.pos)
+                && !area.overshot_target(probe.pos)
+                && !area.within_target(probe.pos)
+            {
+                probe.step();
+            }
 
-            prev_pos = probe.pos;
-            probe.step();
-
-            println!("after step: ({}, {})", probe.pos.0, probe.pos.1);
-        }
-
-        if !area.within_target(prev_pos) {
-            initial_velocity.0 += 1;
-        } else if true {
-            initial_velocity.1 += 1;
-        } else {
-            // we now know the optimal initial velocity was the previous one (???), so break
-            break;
+            if area.within_target(probe.pos) {
+                optimal_initial_velocity = (x, y);
+                break;
+            }
         }
     }
 
-    let mut probe = Probe::new(prev_initial_velocity);
+    let mut probe = Probe::new(optimal_initial_velocity);
     let mut max_y = probe.pos.1;
 
     while !area.within_target(probe.pos) {
@@ -126,9 +119,7 @@ fn part2(area: &TargetArea) -> u64 {
 }
 
 fn main() {
-    let area = TargetArea::new(240, 292, -90, -57);
-
-    println!("part1: {}", part1(&area));
+    println!("part1: {}", part1(&AREA));
     // println!("part2: {}", part2(INPUT));
 }
 
@@ -167,10 +158,10 @@ mod tests {
         assert_eq!(part1(&SAMPLE_AREA), 45);
     }
 
-    // #[test]
-    // fn test_part1() {
-    //     assert_eq!(part1(INPUT), 724);
-    // }
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(&AREA), 4005);
+    }
 
     // #[test]
     // fn test_part2() {
