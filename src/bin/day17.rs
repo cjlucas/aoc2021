@@ -114,13 +114,32 @@ fn part1(area: &TargetArea) -> i64 {
     max_y
 }
 
-fn part2(area: &TargetArea) -> u64 {
-    todo!()
+fn part2(area: &TargetArea) -> usize {
+    let mut valid_initial_velocities = vec![];
+
+    for y in -1000..1000 {
+        for x in -1000..1000 {
+            let mut probe = Probe::new((x, y));
+
+            while !area.below_target(probe.pos)
+                && !area.overshot_target(probe.pos)
+                && !area.within_target(probe.pos)
+            {
+                probe.step();
+            }
+
+            if area.within_target(probe.pos) {
+                valid_initial_velocities.push((x, y));
+            }
+        }
+    }
+
+    valid_initial_velocities.len()
 }
 
 fn main() {
     println!("part1: {}", part1(&AREA));
-    // println!("part2: {}", part2(INPUT));
+    println!("part2: {}", part2(&AREA));
 }
 
 #[cfg(test)]
@@ -163,8 +182,13 @@ mod tests {
         assert_eq!(part1(&AREA), 4005);
     }
 
-    // #[test]
-    // fn test_part2() {
-    //     assert_eq!(part2(INPUT), 724);
-    // }
+    #[test]
+    fn test_part2_sample() {
+        assert_eq!(part2(&SAMPLE_AREA), 112);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(&AREA), 2953);
+    }
 }
